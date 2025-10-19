@@ -34,6 +34,10 @@ export default {
           '100%': { width: 'var(--n,24ch)' },
         },
         blink: { '50%': { borderColor: 'transparent' } },
+        'fade-in-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'gradient-x': 'gradient-x 8s ease infinite',
@@ -42,6 +46,7 @@ export default {
         blob: 'blob 12s ease-in-out infinite',
         shimmer: 'shimmer 1.8s linear infinite',
         typing: 'typing 3s steps(24,end) 1 both, blink .8s step-end infinite',
+        'fade-in-up': 'fade-in-up .6s ease both',
       },
     },
   },

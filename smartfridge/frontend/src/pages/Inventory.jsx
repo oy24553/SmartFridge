@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/apiClient.js'
 import Modal from '../components/Modal.jsx'
+import { SkeletonLine } from '../components/Skeleton.jsx'
 
 export default function Inventory() {
   const [items, setItems] = useState([])
@@ -48,18 +49,43 @@ export default function Inventory() {
         <button className="px-3 py-2 bg-fuchsia-700 text-white rounded" onClick={()=>setOpenAI(true)}>AI 入库</button>
       </div>
       {loading ? (
-        <p>加载中...</p>
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-4 bg-white rounded shadow">
+              <SkeletonLine className="h-5 w-56 mb-2" />
+              <SkeletonLine className="h-4 w-80" />
+            </div>
+          ))}
+        </div>
       ) : error ? (
         <p className="text-red-600">{error}</p>
       ) : (
-        <div className="bg-white shadow rounded divide-y">
+        <div className="bg-white shadow rounded divide-y transition-all hover:shadow-lg">
           {items.length === 0 && <p className="p-4 text-gray-500">暂无数据</p>}
           {items.map((it) => (
-            <div key={it.id} className="p-4 flex items-start justify-between">
+            <div
+              key={it.id}
+              className={
+                `p-4 flex items-start justify-between motion-safe:animate-fade-in-up ` +
+                ((typeof it.days_to_expiry === 'number' && it.days_to_expiry < 0)
+                  ? 'bg-red-50 ring-1 ring-red-200 rounded'
+                  : (typeof it.days_to_expiry === 'number' && it.days_to_expiry <= 2)
+                    ? 'bg-amber-50 ring-1 ring-amber-200 rounded'
+                    : '')
+              }
+            >
               <div>
-                <div className="font-medium">
-                  {it.name}
-                  {it.is_low_stock && <span className="ml-2 text-xs text-red-600">低库存</span>}
+                <div className="font-medium flex items-center">
+                  <span>{it.name}</span>
+                  {it.is_low_stock && (
+                    <span className="ml-2 text-xs text-red-600 animate-pulse">低库存</span>
+                  )}
+                  {(typeof it.days_to_expiry === 'number' && it.days_to_expiry <= 2) && (
+                    <span className="ml-2 relative inline-flex">
+                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                    </span>
+                  )}
                 </div>
                 <div className="text-sm text-gray-600">
                   {it.quantity}{it.unit} · 最低 {it.min_stock}{it.unit} · {it.location || '未标记'}
@@ -68,8 +94,8 @@ export default function Inventory() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="px-2 py-1 bg-gray-100 rounded" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: -1, action: 'consume' }); fetchItems({ q }) }}>-1</button>
-                <button className="px-2 py-1 bg-gray-100 rounded" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: 1, action: 'add' }); fetchItems({ q }) }}>+1</button>
+                <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: -1, action: 'consume' }); fetchItems({ q }) }}>-1</button>
+                <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: 1, action: 'add' }); fetchItems({ q }) }}>+1</button>
                 <button className="px-2 py-1 bg-blue-50 text-blue-700 rounded" onClick={()=>{ setEditItem(it); setEditOpen(true) }}>编辑</button>
                 <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/items/${it.id}/`); fetchItems({ q }) }}>删除</button>
               </div>

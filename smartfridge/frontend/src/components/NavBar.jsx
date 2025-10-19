@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import useAuth, { logout } from '../lib/auth.js'
+import useUI from '../lib/ui.js'
 
 export default function NavBar() {
   const { isAuthenticated } = useAuth()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { animEnabled, toggleAnim } = useUI()
 
   const handleLogout = () => {
     logout()
@@ -30,7 +32,14 @@ export default function NavBar() {
             </>
           )}
         </div>
-        <div className="space-x-3">
+        <div className="space-x-3 flex items-center">
+          <button
+            className="hidden md:inline-block text-xs px-2 py-1 rounded border bg-white hover:bg-gray-50"
+            onClick={toggleAnim}
+            title="切换动效开关"
+          >
+            动效: {animEnabled ? '开' : '关'}
+          </button>
           {isAuthenticated ? (
             <button className="px-3 py-1 rounded bg-gray-100" onClick={handleLogout}>退出</button>
           ) : (

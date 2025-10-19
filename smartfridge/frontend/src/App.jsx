@@ -6,6 +6,8 @@ import Dashboard from './pages/Dashboard.jsx'
 import Shopping from './pages/Shopping.jsx'
 import Planner from './pages/Planner.jsx'
 import NavBar from './components/NavBar.jsx'
+import { useEffect } from 'react'
+import useUI from './lib/ui.js'
 import useAuth from './lib/auth.js'
 
 function Protected({ children }) {
@@ -14,6 +16,14 @@ function Protected({ children }) {
 }
 
 export default function App() {
+  const { animEnabled } = useUI()
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-anim', animEnabled ? 'on' : 'off')
+    }
+  }, [animEnabled])
+
   return (
     <div className="min-h-screen">
       {/* Animated background layer */}

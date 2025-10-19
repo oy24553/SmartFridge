@@ -6,3 +6,12 @@ html, body, #root { height: 100%; }
 
 .container-narrow { max-width: 960px; }
 
+/* Global animation switch: set data-anim="off" on <html> to disable */
+[data-anim="off"] *, [data-anim="off"] *::before, [data-anim="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* A light flash pop utility for success feedback */
+@keyframes flash-pop { 0% { transform: scale(.98); box-shadow: 0 0 0 rgba(16,185,129,0); } 50% { transform: scale(1.02); box-shadow: 0 8px 30px rgba(16,185,129,.25); } 100% { transform: scale(1); box-shadow: 0 0 0 rgba(16,185,129,0);} }
+.flash-once { animation: flash-pop .6s ease-out 1; }

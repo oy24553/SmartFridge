@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/apiClient.js'
 import Modal from '../components/Modal.jsx'
+import { SkeletonLine } from '../components/Skeleton.jsx'
 
 export default function Shopping() {
   const [items, setItems] = useState([])
@@ -46,7 +47,16 @@ export default function Shopping() {
           
         </div>
       </div>
-      {loading ? <p>加载中...</p> : error ? <p className="text-red-600">{error}</p> : (
+      {loading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="p-4 bg-white rounded shadow">
+              <SkeletonLine className="h-5 w-48 mb-2" />
+              <SkeletonLine className="h-4 w-72" />
+            </div>
+          ))}
+        </div>
+      ) : error ? <p className="text-red-600">{error}</p> : (
         groupBy ? (
           <div className="space-y-4">
             {Object.entries(items.reduce((acc, t)=>{
@@ -55,7 +65,7 @@ export default function Shopping() {
               acc[key].push(t)
               return acc
             }, {})).map(([cat, rows]) => (
-              <div key={cat} className="bg-white rounded shadow">
+              <div key={cat} className="bg-white rounded shadow transition-all hover:shadow-lg">
                 <div className="px-4 py-2 border-b font-medium">{cat}（{rows.length}）</div>
                 <div className="divide-y">
                   {rows.map(t => (
@@ -65,7 +75,7 @@ export default function Shopping() {
                         <div className="text-gray-600">{t.quantity}{t.unit} · {t.source==='low_stock'?'低库生成': t.source==='ai'?'AI':'手动'}</div>
                       </div>
                       <div className="flex gap-2">
-                        <button className="px-2 py-1 bg-gray-100 rounded" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>入库</button>
+                        <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>入库</button>
                         <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>完成</button>
                         <button className="px-2 py-1 bg-gray-50 text-gray-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>删除</button>
                       </div>
@@ -76,16 +86,22 @@ export default function Shopping() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded shadow divide-y">
+          <div className="bg-white rounded shadow divide-y transition-all hover:shadow-lg">
             {items.length === 0 && <p className="p-4 text-gray-500">暂无待购项</p>}
             {items.map(t => (
-              <div key={t.id} className="p-4 flex items-center justify-between">
+              <div
+                key={t.id}
+                className={
+                  `p-4 flex items-center justify-between motion-safe:animate-fade-in-up ` +
+                  (t.source === 'ai' ? 'ring-1 ring-sky-200 rounded bg-sky-50/40 ' : '')
+                }
+              >
                 <div className="text-sm">
                   <div className="font-medium">{t.name}</div>
                   <div className="text-gray-600">{t.quantity}{t.unit} · {t.source==='low_stock'?'低库生成': t.source==='ai'?'AI':'手动'}</div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-2 py-1 bg-gray-100 rounded" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>入库</button>
+                  <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>入库</button>
                   <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>完成</button>
                   <button className="px-2 py-1 bg-gray-50 text-gray-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>删除</button>
                 </div>
@@ -195,7 +211,10 @@ function AssistantChat({ onDone }) {
       </div>
       <div className="p-3 border-t flex gap-2">
         <input className="flex-1 border rounded px-3 py-2" placeholder="对我说：推荐补货 / 加入清单 / 直接入库..." value={text} onChange={e=>setText(e.target.value)} />
-        <button className="px-3 py-2 bg-fuchsia-700 text-white rounded" disabled={loading} onClick={send}>{loading? '执行中...' : '发送'}</button>
+        <button className="relative overflow-hidden px-3 py-2 bg-fuchsia-700 text-white rounded" disabled={loading} onClick={send}>
+          <span className="relative z-10">{loading? '执行中...' : '发送'}</span>
+          <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent)] bg-[length:200%_100%] motion-safe:animate-shimmer" />
+        </button>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import api from '../lib/apiClient.js'
+import Reveal from '../components/Reveal.jsx'
 
 export default function Planner() {
   const [days, setDays] = useState(1)
@@ -8,6 +9,7 @@ export default function Planner() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [history, setHistory] = useState([])
+  const [flash, setFlash] = useState(false)
 
   const generate = async () => {
     setLoading(true)
@@ -26,6 +28,8 @@ export default function Planner() {
       await api.post('/api/v1/inventory/shopping/', { name: d.name, quantity: d.quantity || 1, unit: d.unit || 'pcs', source: 'plan' })
     }
     alert('已加入购物清单')
+    setFlash(true)
+    setTimeout(() => setFlash(false), 700)
   }
 
   const loadHistory = async () => {
@@ -44,11 +48,21 @@ export default function Planner() {
       const res = await api.post('/api/v1/inventory/cook/', { title, items })
       alert(`已扣减 ${res.data?.consumed_count || 0} 项库存`)
       loadHistory()
+      setFlash(true)
+      setTimeout(() => setFlash(false), 700)
     } catch (e) { alert('扣减失败') }
   }
 
   return (
     <div className="space-y-4">
+      <div>
+        <span
+          className="block font-mono text-lg overflow-hidden whitespace-nowrap border-r-2 pr-2 border-indigo-500 motion-safe:animate-typing"
+          style={{ '--n': '16ch' }}
+        >
+          AI Menu Planner
+        </span>
+      </div>
       <div className="flex items-end gap-3">
         <div>
           <label className="text-sm text-gray-600">天数</label>
@@ -58,7 +72,10 @@ export default function Planner() {
           <label className="text-sm text-gray-600">每天餐数</label>
           <input type="number" min="1" max="5" className="w-24 border rounded px-2 py-1" value={meals} onChange={e=>setMeals(Number(e.target.value))} />
         </div>
-        <button className="px-3 py-2 bg-gray-900 text-white rounded" onClick={generate} disabled={loading}>{loading? '生成中...' : '生成菜单'}</button>
+        <button className="relative overflow-hidden px-3 py-2 bg-gray-900 text-white rounded" onClick={generate} disabled={loading}>
+          <span className="relative z-10">{loading? '生成中...' : '生成菜单'}</span>
+          <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent)] bg-[length:200%_100%] motion-safe:animate-shimmer" />
+        </button>
         {data?.shopping_diff?.length > 0 && (
           <button className="px-3 py-2 bg-emerald-600 text-white rounded" onClick={addDiffToShopping}>将差额加入购物清单</button>
         )}
@@ -67,9 +84,9 @@ export default function Planner() {
       {error && <p className="text-red-600">{error}</p>}
 
       {data && (
-        <div className="space-y-4">
+        <div className={`space-y-4 ${flash ? 'flash-once' : ''}`}>
           {(data.plan || []).map(day => (
-            <div key={day.day} className="bg-white rounded shadow">
+            <div key={day.day} className="bg-white rounded shadow motion-safe:animate-fade-in-up">
               <div className="px-4 py-2 border-b font-medium">第 {day.day} 天</div>
               <div className="p-4 space-y-3">
                 {(day.meals || []).map((m, idx) => (
@@ -90,7 +107,14 @@ export default function Planner() {
             <div className="bg-white rounded shadow">
               <div className="px-4 py-2 border-b font-medium">需要补购</div>
               <ul className="divide-y">
-                {data.shopping_diff.map((d,i)=>(<li key={i} className="px-4 py-2 text-sm flex justify-between"><span>{d.name}</span><span className="text-gray-600">{d.quantity || ''} {d.unit || ''}</span></li>))}
+                {data.shopping_diff.map((d,i)=>(
+                  <Reveal key={i}>
+                    <li className="px-4 py-2 text-sm flex justify-between">
+                      <span>{d.name}</span>
+                      <span className="text-gray-600">{d.quantity || ''} {d.unit || ''}</span>
+                    </li>
+                  </Reveal>
+                ))}
                 {data.shopping_diff.length===0 && <li className="px-4 py-2 text-sm text-gray-500">无</li>}
               </ul>
             </div>
