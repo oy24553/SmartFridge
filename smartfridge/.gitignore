@@ -1,0 +1,26 @@
+# General
+.DS_Store
+*.log
+*.sqlite3
+*.pyc
+__pycache__/
+.env
+.env.*
+
+# Python venv
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+.eslintcache
+
+# Django
+staticfiles/
+media/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
