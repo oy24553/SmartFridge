@@ -90,3 +90,14 @@ class CookHistorySerializer(serializers.ModelSerializer):
         model = CookHistory
         fields = ("id", "title", "items", "created_at")
         read_only_fields = ("id", "created_at")
+
+
+class CookItemUseSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    quantity = serializers.FloatField(required=False, default=0)
+    unit = serializers.CharField(required=False, allow_blank=True)
+
+
+class CookRequestSerializer(serializers.Serializer):
+    title = serializers.CharField(required=False, allow_blank=True)
+    items = CookItemUseSerializer(many=True)

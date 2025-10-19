@@ -17,7 +17,10 @@ from .serializers import (
     ConsumptionEventSerializer,
     ShoppingTaskSerializer,
     CookHistorySerializer,
+    CookRequestSerializer,
 )
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
 
 
 class IsOwner(permissions.BasePermission):
@@ -99,6 +102,7 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         return Response(created, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(responses={200: OpenApiTypes.OBJECT}, description="Dashboard 汇总：低库、临期、优先清单")
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def summary(request):
@@ -161,6 +165,7 @@ def summary(request):
     })
 
 
+@extend_schema(request=CookRequestSerializer, responses={200: CookHistorySerializer})
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def cook(request):
