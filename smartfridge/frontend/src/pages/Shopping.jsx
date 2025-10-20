@@ -186,7 +186,7 @@ function AssistantChat({ onDone }) {
     setHistory(h => [...h, userMsg])
     setLoading(true)
     try {
-      const { data } = await api.post('/api/v1/ai/assistant/', { message: text, execute: true, language: 'zh' })
+      const { data } = await api.post('/api/v1/ai/assistant/', { message: text, execute: true, language: 'en' })
       const d = data?.decision || {}
       const r = data?.result || {}
       const reason = d?.reason ? `; reason: ${d.reason}` : ''
