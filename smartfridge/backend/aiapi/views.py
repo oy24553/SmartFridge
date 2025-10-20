@@ -118,7 +118,7 @@ def suggest_shopping_view(request):
     except Exception as e:
         # Fallback to a simple heuristic when AI is not available
         low = InventoryItem.objects.filter(owner=request.user, quantity__lte=F("min_stock")).values("name", "unit")
-        data = {"suggestions": [{"name": it["name"], "quantity": 1, "unit": it.get("unit") or "pcs", "reason": "低库存补齐"} for it in low]}
+        data = {"suggestions": [{"name": it["name"], "quantity": 1, "unit": it.get("unit") or "pcs", "reason": "restock due to low stock"} for it in low]}
 
     suggestions = data.get("suggestions", [])
     created = []

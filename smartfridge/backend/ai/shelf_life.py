@@ -88,9 +88,9 @@ def estimate_shelf_life_ai_days(name: str) -> int | None:
         "required": ["days"],
     }
     prompt = (
-        "估算给定食材在家庭常见储存条件下的可食用保质期天数(整数天)。" \
-        "若是冷藏即按冷藏；如明显为常温耐储(米/油/罐头等)给出更长天数。" \
-        "仅输出 JSON(含天数与简要理由)。食材：" + str(name)
+        "Estimate edible shelf-life days (integer) for the given ingredient under common home storage. "
+        "If likely refrigerated, assume fridge; if pantry-stable (rice/oil/canned, etc.), return longer days. "
+        "Output JSON only (include days and a short reason). Item: " + str(name)
     )
     try:
         data = call_json(prompt, schema)

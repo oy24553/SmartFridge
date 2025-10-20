@@ -1,11 +1,33 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     './index.html',
     './src/**/*.{js,jsx,ts,tsx}',
   ],
   theme: {
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: '1rem',
+        sm: '1rem',
+        md: '1.25rem',
+        lg: '1.5rem',
+        xl: '2rem',
+      },
+      screens: {
+        sm: '640px',
+        md: '768px',
+        lg: '1024px',
+        xl: '1200px',
+      },
+    },
     extend: {
+      fontFamily: {
+        heading: ['Sora', 'Plus Jakarta Sans', 'Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Arial'],
+        sans: ['Inter', 'Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Arial'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+      },
       keyframes: {
         'gradient-x': {
           '0%, 100%': { backgroundPosition: '0% 50%' },

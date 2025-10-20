@@ -45,7 +45,7 @@ def call_json(input_text: str, schema: Dict[str, Any], temperature: float = 0.3)
     except TypeError:
         # Older SDKs may not support response_format; fall back to instruction-only JSON
         schema_text = json.dumps({"type": "object", **schema}, ensure_ascii=False)
-        fallback_prompt = input_text + "\n\n严格只输出一个 JSON 对象，必须完全符合下面的 JSON Schema，不要输出额外说明：\n" + schema_text
+        fallback_prompt = input_text + "\n\nStrictly output a single JSON object that exactly matches the following JSON Schema. Do not include any extra text or explanations:\n" + schema_text
         response = client.responses.create(
             model=_model(),
             input=fallback_prompt,
@@ -77,21 +77,21 @@ def _fmt_item_line(it: dict) -> str:
             exp = exp.isoformat()  # datetime/date -> string
         except Exception:
             exp = str(exp)
-        exp_str = f" 到期{exp}"
+        exp_str = f" exp {exp}"
     else:
         exp_str = ""
     return f"- {name} {qty}{unit}{exp_str}"
 
 
 def build_menu_prompt(inventory: list[dict], days: int, meals_per_day: int, language: str = "zh") -> str:
-    names = ", ".join(sorted({i.get("name", "") for i in inventory if i.get("name")})) or "(无库存)"
+    names = ", ".join(sorted({i.get("name", "") for i in inventory if i.get("name")})) or "(no inventory)"
     inv_text = "\n".join(_fmt_item_line(it) for it in inventory)
     return (
-        f"你是一个家庭餐食规划助手。请基于给定库存，生成 {days} 天、每天 {meals_per_day} 餐的菜单。"
-        f"要求输出结构化 JSON（严格遵守给定 schema），不要包含多余文本。"
-        f"语言：{language}。\n\n"
-        f"【当前库存（名称/数量/单位/到期）】\n" + inv_text +
-        f"\n\n在保证尽量利用现有食材的前提下，给出每餐菜品、主要用料与估算用量；并给出需要补购的差额（按名称/数量/单位）。"
+        f"You are a home meal planner. Based on the given inventory, generate a menu for {days} day(s), {meals_per_day} meal(s) per day."
+        f"Output strictly structured JSON (follow the provided schema), no extra text."
+        f"Language of names/steps: {language}.\n\n"
+        f"[Current inventory (name/quantity/unit/expiry)]\n" + inv_text +
+        f"\n\nPrefer using existing items; include each meal's dish name, main ingredients and estimated quantities; and produce a shopping diff (name/quantity/unit)."
     )
 
 
@@ -264,8 +264,8 @@ def _fallback_parse_items(text: str) -> list[dict]:
 
 def parse_items_from_text(text: str) -> Dict[str, Any]:
     prompt = (
-        "将以下文本解析为入库条目数组。数量可为数字，单位如 g/ml/pcs。"\
-        "尽量识别到期日（YYYY-MM-DD）。只输出 JSON（严格符合 schema）。\n\n" + text
+        "Parse the following text into an array of inventory items. Quantity is numeric; units like g/ml/pcs. "
+        "Try to detect expiry date (YYYY-MM-DD). Output JSON only (strictly follow the schema).\n\n" + text
     )
     try:
         res = call_json(prompt, PARSE_ITEMS_SCHEMA)
@@ -276,13 +276,13 @@ def parse_items_from_text(text: str) -> Dict[str, Any]:
     return res
 
 
-def build_shopping_prompt(inventory: list[dict], days: int = 3, language: str = "zh") -> str:
+def build_shopping_prompt(inventory: list[dict], days: int = 3, language: str = "en") -> str:
     inv_lines = "\n".join(_fmt_item_line(it) for it in inventory)
     return (
-        f"请基于当前库存，给出未来 {days} 天需要补购的建议清单。"
-        f"每条建议包含名称、建议数量、单位，以及一句理由。"
-        f"注意避免与现有库存重复，优先补齐基础食材（米面油、蛋奶蔬果、常用调味）与能搭配当前库存的食材。"
-        f"语言：{language}。只输出 JSON，遵循 schema。\n\n当前库存:\n{inv_lines}"
+        f"Based on current inventory, suggest a shopping list for the next {days} day(s). "
+        f"Each suggestion should include name, suggested quantity, unit and a one-line reason. "
+        f"Avoid duplicates with existing inventory; prioritize staples/dairy/produce/seasonings and items that match current stock. "
+        f"Language: {language}. Output JSON only, follow the schema.\n\nCurrent inventory:\n{inv_lines}"
     )
 
 
@@ -315,9 +315,9 @@ def suggest_shopping(inventory: list[dict], days: int = 3, language: str = "zh")
 DECISION_SCHEMA: Dict[str, Any] = {
     "properties": {
         "action": {"type": "string", "enum": [
-            "suggest_shopping",  # 基于库存给出补货建议（可含 items）
-            "add_shopping",      # 解析文本，加入购物清单
-            "import_inventory",  # 解析文本，直接入库
+            "suggest_shopping",  # suggest shopping list (may include items)
+            "add_shopping",      # parse text, add to shopping list
+            "import_inventory",  # parse text, import into inventory
             "help"
         ]},
         "days": {"type": "integer"},
@@ -340,18 +340,18 @@ DECISION_SCHEMA: Dict[str, Any] = {
 }
 
 
-def build_assistant_prompt(message: str, inventory: list[dict], language: str = "zh") -> str:
+def build_assistant_prompt(message: str, inventory: list[dict], language: str = "en") -> str:
     inv_lines = "\n".join(_fmt_item_line(it) for it in inventory)
     return (
-        "你是家庭储藏与购物助手。你只能做三类动作，并必须以 JSON 结构化输出：\n"
-        "1) suggest_shopping：基于库存给出未来几天的补货建议（可含 items）。\n"
-        "2) add_shopping：把用户文本解析为购物清单条目（items）。\n"
-        "3) import_inventory：把用户文本解析为直接入库条目（items）。\n"
-        "始终在 action、items、days、reason 中输出。不要包含多余自然语言。\n\n"
-        f"当前库存：\n{inv_lines}\n\n用户请求：\n{message}"
+        "You are a pantry shopping assistant. You can only perform three actions and must output structured JSON:\n"
+        "1) suggest_shopping: suggest items for the next few days (may include items).\n"
+        "2) add_shopping: parse user text into shopping list items.\n"
+        "3) import_inventory: parse user text into inventory import items.\n"
+        "Always output fields: action, items, days, reason. Do not add any extra natural language.\n\n"
+        f"Current inventory:\n{inv_lines}\n\nUser message:\n{message}"
     )
 
 
-def decide_action(message: str, inventory: list[dict], language: str = "zh") -> Dict[str, Any]:
+def decide_action(message: str, inventory: list[dict], language: str = "en") -> Dict[str, Any]:
     prompt = build_assistant_prompt(message, inventory, language)
     return call_json(prompt, DECISION_SCHEMA)

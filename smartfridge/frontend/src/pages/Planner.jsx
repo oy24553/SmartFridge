@@ -14,11 +14,11 @@ export default function Planner() {
   const generate = async () => {
     setLoading(true)
     try {
-      const { data } = await api.post('/api/v1/ai/menu/', { days, meals_per_day: meals, language: 'zh' })
+      const { data } = await api.post('/api/v1/ai/menu/', { days, meals_per_day: meals, language: 'en' })
       setData(data)
       setError(null)
     } catch (e) {
-      setError(e?.response?.data?.detail || '生成失败')
+      setError(e?.response?.data?.detail || 'Failed to generate')
     } finally { setLoading(false) }
   }
 
@@ -27,7 +27,7 @@ export default function Planner() {
     for (const d of data.shopping_diff) {
       await api.post('/api/v1/inventory/shopping/', { name: d.name, quantity: d.quantity || 1, unit: d.unit || 'pcs', source: 'plan' })
     }
-    alert('已加入购物清单')
+    alert('Added to shopping list')
     setFlash(true)
     setTimeout(() => setFlash(false), 700)
   }
@@ -43,18 +43,18 @@ export default function Planner() {
 
   const cookMeal = async (dayNo, meal) => {
     try {
-      const title = `第${dayNo}天 - ${meal.name}`
+      const title = `Day ${dayNo} - ${meal.name}`
       const items = (meal.ingredients || []).map(i => ({ name: i.name, quantity: i.quantity || 0, unit: i.unit || '' }))
       const res = await api.post('/api/v1/inventory/cook/', { title, items })
-      alert(`已扣减 ${res.data?.consumed_count || 0} 项库存`)
+      alert(`Deducted ${res.data?.consumed_count || 0} inventory item(s)`) 
       loadHistory()
       setFlash(true)
       setTimeout(() => setFlash(false), 700)
-    } catch (e) { alert('扣减失败') }
+    } catch (e) { alert('Deduction failed') }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-[1120px] space-y-4">
       <div>
         <span
           className="block font-mono text-lg overflow-hidden whitespace-nowrap border-r-2 pr-2 border-indigo-500 motion-safe:animate-typing"
@@ -65,19 +65,19 @@ export default function Planner() {
       </div>
       <div className="flex items-end gap-3">
         <div>
-          <label className="text-sm text-gray-600">天数</label>
-          <input type="number" min="1" max="7" className="w-24 border rounded px-2 py-1" value={days} onChange={e=>setDays(Number(e.target.value))} />
+          <label className="text-sm text-gray-600 font-light">Days</label>
+          <input type="number" min="1" max="7" className="w-24 input" value={days} onChange={e=>setDays(Number(e.target.value))} />
         </div>
         <div>
-          <label className="text-sm text-gray-600">每天餐数</label>
-          <input type="number" min="1" max="5" className="w-24 border rounded px-2 py-1" value={meals} onChange={e=>setMeals(Number(e.target.value))} />
+          <label className="text-sm text-gray-600 font-light">Meals per day</label>
+          <input type="number" min="1" max="5" className="w-24 input" value={meals} onChange={e=>setMeals(Number(e.target.value))} />
         </div>
-        <button className="relative overflow-hidden px-3 py-2 bg-gray-900 text-white rounded" onClick={generate} disabled={loading}>
-          <span className="relative z-10">{loading? '生成中...' : '生成菜单'}</span>
+        <button className="relative overflow-hidden btn-primary" onClick={generate} disabled={loading}>
+          <span className="relative z-10">{loading? 'Generating...' : 'Generate Plan'}</span>
           <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent)] bg-[length:200%_100%] motion-safe:animate-shimmer" />
         </button>
         {data?.shopping_diff?.length > 0 && (
-          <button className="px-3 py-2 bg-emerald-600 text-white rounded" onClick={addDiffToShopping}>将差额加入购物清单</button>
+          <button className="btn-ghost" onClick={addDiffToShopping}>Add diff to shopping list</button>
         )}
       </div>
 
@@ -86,16 +86,16 @@ export default function Planner() {
       {data && (
         <div className={`space-y-4 ${flash ? 'flash-once' : ''}`}>
           {(data.plan || []).map(day => (
-            <div key={day.day} className="bg-white rounded shadow motion-safe:animate-fade-in-up">
-              <div className="px-4 py-2 border-b font-medium">第 {day.day} 天</div>
-              <div className="p-4 space-y-3">
+            <div key={day.day} className="glass-card rounded-2xl motion-safe:animate-fade-in-up">
+              <div className="px-5 py-3 border-b font-medium">Day {day.day}</div>
+              <div className="p-5 space-y-3">
                 {(day.meals || []).map((m, idx) => (
                   <div key={idx}>
                     <div className="font-medium flex items-center justify-between">
                       <span>{m.name}</span>
-                      <button className="px-2 py-1 bg-emerald-600 text-white rounded text-xs" onClick={()=>cookMeal(day.day, m)}>确认做饭</button>
+                      <button className="btn-soft text-xs" onClick={()=>cookMeal(day.day, m)}>Cook</button>
                     </div>
-                    {m.ingredients && <div className="text-sm text-gray-600">用料：{m.ingredients.map(i=>`${i.name}${i.quantity?` ${i.quantity}`:''}${i.unit||''}`).join('，')}</div>}
+                    {m.ingredients && <div className="text-sm text-gray-600">Ingredients: {m.ingredients.map(i=>`${i.name}${i.quantity?` ${i.quantity}`:''}${i.unit||''}`).join(', ')}</div>}
                     {m.steps && m.steps.length>0 && <ol className="list-decimal list-inside text-sm text-gray-700">{m.steps.map((s,i)=>(<li key={i}>{s}</li>))}</ol>}
                   </div>
                 ))}
@@ -104,36 +104,36 @@ export default function Planner() {
           ))}
 
           {data.shopping_diff && (
-            <div className="bg-white rounded shadow">
-              <div className="px-4 py-2 border-b font-medium">需要补购</div>
+            <div className="glass-card rounded-2xl">
+              <div className="px-5 py-3 border-b font-medium">To Buy</div>
               <ul className="divide-y">
                 {data.shopping_diff.map((d,i)=>(
                   <Reveal key={i}>
-                    <li className="px-4 py-2 text-sm flex justify-between">
+                    <li className="px-5 py-2.5 text-sm flex justify-between">
                       <span>{d.name}</span>
                       <span className="text-gray-600">{d.quantity || ''} {d.unit || ''}</span>
                     </li>
                   </Reveal>
                 ))}
-                {data.shopping_diff.length===0 && <li className="px-4 py-2 text-sm text-gray-500">无</li>}
+                {data.shopping_diff.length===0 && <li className="px-4 py-2 text-sm text-gray-500">None</li>}
               </ul>
             </div>
           )}
 
-          <div className="bg-white rounded shadow">
-            <div className="px-4 py-2 border-b font-medium flex items-center justify-between">做饭历史
-              <button className="px-2 py-1 bg-gray-100 rounded text-xs" onClick={loadHistory}>刷新</button>
+          <div className="glass-card rounded-2xl">
+            <div className="px-5 py-3 border-b font-medium flex items-center justify-between">Cooking History
+              <button className="btn-soft text-xs" onClick={loadHistory}>Refresh</button>
             </div>
             <ul className="divide-y">
-              {history.length===0 && <li className="px-4 py-2 text-sm text-gray-500">暂无</li>}
+              {history.length===0 && <li className="px-4 py-2 text-sm text-gray-500">None</li>}
               {history.map(h => (
-                <li key={h.id} className="px-4 py-2 text-sm">
+                <li key={h.id} className="px-5 py-2.5 text-sm">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{h.title}</div>
                       <div className="text-gray-500 text-xs">{new Date(h.created_at).toLocaleString()}</div>
                     </div>
-                    <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/cook-history/${h.id}/`); loadHistory() }}>删除</button>
+                    <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/cook-history/${h.id}/`); loadHistory() }}>Delete</button>
                   </div>
                   {h.items && h.items.length>0 && (
                     <div className="mt-1 text-gray-700">

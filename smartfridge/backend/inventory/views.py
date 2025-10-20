@@ -75,7 +75,7 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
             # Ensure not below zero
             new_q = item.quantity + delta
             if new_q < 0:
-                return Response({"detail": "数量不能小于 0"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"detail": "Quantity cannot be negative"}, status=status.HTTP_400_BAD_REQUEST)
             item.quantity = new_q
             item.save(update_fields=["quantity", "updated_at"])
             ev = ConsumptionEvent.objects.create(
@@ -102,7 +102,7 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
         return Response(created, status=status.HTTP_201_CREATED)
 
 
-@extend_schema(responses={200: OpenApiTypes.OBJECT}, description="Dashboard 汇总：低库、临期、优先清单")
+@extend_schema(responses={200: OpenApiTypes.OBJECT}, description="Dashboard summary: low stock, near expiry, priority")
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def summary(request):
@@ -170,7 +170,7 @@ def summary(request):
 @permission_classes([permissions.IsAuthenticated])
 def cook(request):
     data = request.data or {}
-    title = str(data.get("title") or "已烹饪")
+    title = str(data.get("title") or "Cooked")
     items = data.get("items") or []
     results = []
 
@@ -301,7 +301,7 @@ class ShoppingTaskViewSet(viewsets.ModelViewSet):
     def purchase_batch(self, request):
         items = request.data.get("items", [])
         if not isinstance(items, list):
-            return Response({"detail": "items 必须是数组"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "items must be an array"}, status=status.HTTP_400_BAD_REQUEST)
         results = []
         for row in items:
             pk = row.get("id")
@@ -359,7 +359,7 @@ class ShoppingTaskViewSet(viewsets.ModelViewSet):
 @permission_classes([permissions.IsAuthenticated])
 def cook(request):
     data = request.data or {}
-    title = str(data.get("title") or "已烹饪")
+    title = str(data.get("title") or "Cooked")
     items = data.get("items") or []
     results = []
 

@@ -12,7 +12,7 @@ from drf_spectacular.types import OpenApiTypes
 @extend_schema(
     request=RegisterSerializer,
     responses={201: OpenApiTypes.OBJECT},
-    description="注册用户并返回 access/refresh JWT。"
+    description="Register user and return access/refresh JWT."
 )
 @api_view(["POST"])
 @permission_classes([AllowAny])
