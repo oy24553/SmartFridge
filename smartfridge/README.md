@@ -1,23 +1,88 @@
-# SmartPantry AI (SmartFridge)
+# SmartPantry AI
 
-一个采用 Django + DRF（后端）与 React + Vite（前端）的全栈项目骨架，用于实现电子储藏柜/冰箱管理与 AI 辅助菜单/购物清单。
+Full‑stack pantry/fridge manager with AI assistance. Django + DRF for the backend, React + Vite for the frontend. Track inventory, low‑stock/expiry, build shopping tasks, generate AI menus, parse free‑text into items, and deduct stock when “cooking”.
 
-## 目录结构
-- `backend/` — Django 5 + DRF 服务（JWT、CORS、OpenAI 调用封装）
-- `frontend/` — React 18 + Vite + Tailwind 应用
-- `docs/` — 设计与接口文档
+## Features
+- Auth: register/login (JWT); OpenAPI docs.
+- Inventory: list/search/filter; qty + unit; min_stock; expiry; notes; barcode/brand/tags; batch import; quick “+1/−1”.
+- Awareness: dashboard low‑stock/near‑expiry; priority list by days‑to‑expiry vs. estimated days‑to‑empty.
+- Shopping: tasks CRUD; generate from low‑stock; AI suggestions; one‑click purchase (single/batch); sources (manual/low_stock/ai/plan); grouped view/filters.
+- AI:
+  - Menu generator (days × meals/day) → structured JSON + shopping diff.
+  - Free‑text → items parsing; optional one‑click import.
+  - Assistant: “add to shopping / import / suggest”.
+  - Shelf‑life: rules first, fallback to model if unknown.
+- Cooking: confirm meal → deduct inventory; cook history (list/delete).
 
-## 快速开始（路线图）
-1) 初始化后端：创建虚拟环境、安装 `requirements.txt`，启动空项目和健康检查接口。
-2) 接入 JWT、CORS 与环境变量（`.env`）。
-3) 初始化前端脚手架（Vite），完成登录页与库存列表占位。
-4) 打通首个端到端流程：录入食材 → 获取低库/临期提醒 → 生成 AI 菜谱/购物建议（后端先提供占位 API）。
+## Tech Stack
+- Backend: Python 3.12+, Django 5, DRF, SimpleJWT, drf‑spectacular, django‑cors‑headers, dj‑database‑url.
+- DB: SQLite (dev) or Postgres (prod recommended).
+- Frontend: React 18, Vite, TailwindCSS, Axios, Zustand.
 
-## 环境变量
-参考根目录 `.env.example` 与 `backend/.env.example`。
+## Structure
+```
+Project/smartfridge/
+  backend/   # Django project (server/, inventory/, accounts/, aiapi/, ai/)
+  frontend/  # Vite + React app (src/)
+  docs/
+```
 
-## 运行（预期）
-- 后端：`cd backend && python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt && python manage.py runserver`
-- 前端：`cd frontend && npm i && npm run dev`
+## Local Development
+1) Backend
+```
+cd Project/smartfridge/backend
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # set values below
+python manage.py migrate
+python manage.py runserver
+```
 
-> 本仓库当前只包含目录与说明。下一步会逐步生成后端与前端脚手架。
+2) Frontend
+```
+cd Project/smartfridge/frontend
+npm i
+cp .env.local.example .env.local  # VITE_API_BASE_URL=http://127.0.0.1:8000
+npm run dev
+```
+
+## Backend Env Vars
+- `DJANGO_SECRET_KEY` (required)
+- `DJANGO_DEBUG` (True/False)
+- `ALLOWED_HOSTS` (comma list)
+- `ALLOWED_ORIGINS` (comma list of frontends)
+- `DATABASE_URL` (`sqlite:///db.sqlite3` locally; Postgres in prod)
+- `OPENAI_API_KEY`, `OPENAI_MODEL` (e.g. `gpt-4o`), `OPENAI_MAX_OUTPUT_TOKENS`
+- `SHELF_LIFE_AI_MAX_DAYS` (e.g. 365)
+
+## Frontend Env
+- `VITE_API_BASE_URL` = backend origin (no `/api`), e.g. `https://your‑app.onrender.com`
+
+## API Quick Reference (under `/api`)
+- Auth: POST `/auth/register/`, `/auth/jwt/create/`, `/auth/jwt/refresh/`
+- Health: GET `/v1/health/`
+- Inventory: CRUD `/v1/inventory/items/`; POST `/v1/inventory/items/{id}/adjust/`; `/v1/inventory/items/bulk/`
+- Summary: GET `/v1/inventory/summary/?days=3&window_days=14`
+- Shopping: REST `/v1/inventory/shopping/`; generate `/shopping/generate/`; purchase `/shopping/{id}/purchase/`; batch `/shopping/purchase-batch/`
+- AI: POST `/v1/ai/menu/`, `/v1/ai/parse-items/`, `/v1/ai/parse-items-import/`, `/v1/ai/assistant/`
+- Cooking: POST `/v1/inventory/cook/`; GET/DELETE `/v1/inventory/cook-history/`
+
+## Deploy
+### Render (Backend)
+- Root directory: `Project/smartfridge/backend`
+- Build: `pip install -r requirements.txt && pip install gunicorn`
+- Start: `bash -c "python manage.py migrate --noinput && gunicorn server.wsgi:application --bind 0.0.0.0:$PORT"`
+- Env: see above. Prefer Postgres for persistence.
+
+### Vercel (Frontend)
+- Env: `VITE_API_BASE_URL=https://<render-domain>` (no `/api`)
+- Redeploy after env changes.
+
+## Troubleshooting
+- 500 on register/login in prod → run migrations (Render Pre‑Deploy / Start command).
+- Frontend still calls localhost → set `VITE_API_BASE_URL` and redeploy.
+- CORS → include frontend origin(s) in `ALLOWED_ORIGINS`.
+- SQLite on Render is ephemeral; switch to Postgres for real data.
+
+## Roadmap
+- Household & preferences, unit conversions, Celery reminders, AI call metrics dashboard.
