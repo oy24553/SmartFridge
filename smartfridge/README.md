@@ -1,5 +1,12 @@
 # SmartPantry AI
 
+![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-5.0-green?logo=django&logoColor=white)
+![React](https://img.shields.io/badge/React-18-blue?logo=react&logoColor=white)
+![Tailwind](https://img.shields.io/badge/TailwindCSS-3-38B2AC?logo=tailwindcss&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-Hosting-black?logo=vercel&logoColor=white)
+
 Full‑stack pantry/fridge manager with AI assistance. Django + DRF for the backend, React + Vite for the frontend. Track inventory, low‑stock/expiry, build shopping tasks, generate AI menus, parse free‑text into items, and deduct stock when “cooking”.
 
 ## Features
@@ -16,7 +23,7 @@ Full‑stack pantry/fridge manager with AI assistance. Django + DRF for the back
 
 ## Tech Stack
 - Backend: Python 3.12+, Django 5, DRF, SimpleJWT, drf‑spectacular, django‑cors‑headers, dj‑database‑url.
-- DB: SQLite (dev) or Postgres (prod recommended).
+- DB: PostgreSQL.
 - Frontend: React 18, Vite, TailwindCSS, Axios, Zustand.
 
 ## Structure
@@ -77,12 +84,6 @@ npm run dev
 ### Vercel (Frontend)
 - Env: `VITE_API_BASE_URL=https://<render-domain>` (no `/api`)
 - Redeploy after env changes.
-
-## Troubleshooting
-- 500 on register/login in prod → run migrations (Render Pre‑Deploy / Start command).
-- Frontend still calls localhost → set `VITE_API_BASE_URL` and redeploy.
-- CORS → include frontend origin(s) in `ALLOWED_ORIGINS`.
-- SQLite on Render is ephemeral; switch to Postgres for real data.
 
 ## Roadmap
 - Household & preferences, unit conversions, Celery reminders, AI call metrics dashboard.
