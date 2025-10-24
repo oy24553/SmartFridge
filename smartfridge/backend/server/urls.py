@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.urls import include, path
+from core.views import health  # lightweight root health endpoint for uptime monitors
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -13,6 +14,9 @@ from rest_framework_simplejwt.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    # Lightweight root-level health endpoint (supports GET/HEAD)
+    path("healthz/", health, name="healthz"),
 
     # API schema and docs
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

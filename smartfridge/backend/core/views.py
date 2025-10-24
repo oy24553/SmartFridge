@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 
 
 @extend_schema(responses={200: OpenApiTypes.OBJECT}, description="Health check")
-@api_view(["GET"]) 
+@api_view(["GET", "HEAD"]) 
 @permission_classes([AllowAny])
 def health(request):
     return Response({
