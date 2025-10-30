@@ -1,11 +1,13 @@
 # SmartPantry AI
 
-![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-5.0-green?logo=django&logoColor=white)
-![React](https://img.shields.io/badge/React-18-blue?logo=react&logoColor=white)
-![Tailwind](https://img.shields.io/badge/TailwindCSS-3-38B2AC?logo=tailwindcss&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-Hosting-black?logo=vercel&logoColor=white)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.0-success?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://react.dev)
+[![Tailwind](https://img.shields.io/badge/TailwindCSS-3-38B2AC?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Live](https://img.shields.io/badge/Live-App-0EA5E9?logo=vercel&logoColor=white)](https://smart-fridge-xi.vercel.app)
+[![API Docs](https://img.shields.io/badge/API-docs-10B981?logo=swagger&logoColor=white)](https://smart-fridge-xi.vercel.app/api/docs)
+[![Repo](https://img.shields.io/badge/GitHub-Repo-181717?logo=github&logoColor=white)](https://github.com/oy24553/SmartFridge)
 
 Full‑stack pantry/fridge manager with AI assistance. Django + DRF for the backend, React + Vite for the frontend. Track inventory, low‑stock/expiry, build shopping tasks, generate AI menus, parse free‑text into items, and deduct stock when “cooking”.
 
@@ -87,3 +89,7 @@ npm run dev
 
 ## Roadmap
 - Household & preferences, unit conversions, Celery reminders, AI call metrics dashboard.
+## Demo Mode
+- Click "Login as Demo User" on the login page to enter instantly.
+- Endpoint (issues tokens): `POST /api/auth/demo-token/`.
+- Defaults (override in Django settings or env): `DEMO_USERNAME=demo`, `DEMO_PASSWORD=123456`, `DEMO_EMAIL=demo@example.com`.

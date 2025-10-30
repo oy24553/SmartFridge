@@ -23,6 +23,8 @@ html, body, #root { height: 100%; }
   .btn-ghost { @apply btn bg-white/50 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/20 border border-white/60 dark:border-white/20 backdrop-blur; }
   .btn-primary { @apply btn text-white shadow-md shadow-fuchsia-400/20 bg-gradient-to-r from-fuchsia-600 via-indigo-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500; }
   .btn-soft { @apply btn bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20; }
+  .btn-demo { @apply btn relative text-white overflow-hidden bg-gradient-to-r from-fuchsia-600 via-indigo-600 to-cyan-600; }
+  .btn-demo::before { content: ""; @apply absolute inset-0 rounded-md; background: linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
 
   /* Inputs */
   .input { @apply w-full rounded-md border border-gray-200 bg-white/70 backdrop-blur px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-white/10 dark:border-white/10; }
@@ -54,3 +56,5 @@ html, body, #root { height: 100%; }
   background-size: 24px 24px;
   mask-image: radial-gradient(circle at 40% 30%, rgba(0,0,0,.9), rgba(0,0,0,0) 70%);
 }
+
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
