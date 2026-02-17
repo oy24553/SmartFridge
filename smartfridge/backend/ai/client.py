@@ -86,10 +86,12 @@ def _fmt_item_line(it: dict) -> str:
 def build_menu_prompt(inventory: list[dict], days: int, meals_per_day: int, language: str = "zh") -> str:
     names = ", ".join(sorted({i.get("name", "") for i in inventory if i.get("name")})) or "(no inventory)"
     inv_text = "\n".join(_fmt_item_line(it) for it in inventory)
+    lang_hint = "British English (en-GB)" if language == "en" else language
     return (
         f"You are a home meal planner. Based on the given inventory, generate a menu for {days} day(s), {meals_per_day} meal(s) per day."
         f"Output strictly structured JSON (follow the provided schema), no extra text."
-        f"Language of names/steps: {language}.\n\n"
+        f"Language of names/steps: {lang_hint}.\n"
+        f"When language is English, prefer UK food terms (e.g., courgette, aubergine, rocket, mince; litres/grams).\n\n"
         f"[Current inventory (name/quantity/unit/expiry)]\n" + inv_text +
         f"\n\nPrefer using existing items; include each meal's dish name, main ingredients and estimated quantities; and produce a shopping diff (name/quantity/unit)."
     )
@@ -265,7 +267,8 @@ def _fallback_parse_items(text: str) -> list[dict]:
 def parse_items_from_text(text: str) -> Dict[str, Any]:
     prompt = (
         "Parse the following text into an array of inventory items. Quantity is numeric; units like g/ml/pcs. "
-        "Try to detect expiry date (YYYY-MM-DD). Output JSON only (strictly follow the schema).\n\n" + text
+        "Try to detect expiry date (YYYY-MM-DD). Output JSON only (strictly follow the schema).\n"
+        "Use British English food terms and UK-style quantities when ambiguous (e.g., litres/grams).\n\n" + text
     )
     try:
         res = call_json(prompt, PARSE_ITEMS_SCHEMA)
@@ -278,11 +281,14 @@ def parse_items_from_text(text: str) -> Dict[str, Any]:
 
 def build_shopping_prompt(inventory: list[dict], days: int = 3, language: str = "en") -> str:
     inv_lines = "\n".join(_fmt_item_line(it) for it in inventory)
+    lang_hint = "British English (en-GB)" if language == "en" else language
     return (
         f"Based on current inventory, suggest a shopping list for the next {days} day(s). "
         f"Each suggestion should include name, suggested quantity, unit and a one-line reason. "
         f"Avoid duplicates with existing inventory; prioritize staples/dairy/produce/seasonings and items that match current stock. "
-        f"Language: {language}. Output JSON only, follow the schema.\n\nCurrent inventory:\n{inv_lines}"
+        f"Language: {lang_hint}. Output JSON only, follow the schema.\n"
+        f"When language is English, prefer UK terms and realistic UK packaging sizes.\n\n"
+        f"Current inventory:\n{inv_lines}"
     )
 
 
@@ -342,12 +348,14 @@ DECISION_SCHEMA: Dict[str, Any] = {
 
 def build_assistant_prompt(message: str, inventory: list[dict], language: str = "en") -> str:
     inv_lines = "\n".join(_fmt_item_line(it) for it in inventory)
+    lang_hint = "British English (en-GB)" if language == "en" else language
     return (
         "You are a pantry shopping assistant. You can only perform three actions and must output structured JSON:\n"
         "1) suggest_shopping: suggest items for the next few days (may include items).\n"
         "2) add_shopping: parse user text into shopping list items.\n"
         "3) import_inventory: parse user text into inventory import items.\n"
         "Always output fields: action, items, days, reason. Do not add any extra natural language.\n\n"
+        f"Language: {lang_hint}. When English, prefer UK terms and packaging sizes.\n\n"
         f"Current inventory:\n{inv_lines}\n\nUser message:\n{message}"
     )
 

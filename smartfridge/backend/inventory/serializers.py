@@ -5,6 +5,21 @@ from rest_framework import serializers
 from .models import InventoryItem, ConsumptionEvent, ShoppingTask, CookHistory
 
 
+class QuickAddItemSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    quantity = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=1)
+    unit = serializers.CharField(required=False, allow_blank=True)
+    category = serializers.CharField(required=False, allow_blank=True)
+    location = serializers.CharField(required=False, allow_blank=True)
+    container = serializers.CharField(required=False, allow_blank=True)
+    expiry_type = serializers.ChoiceField(choices=["use_by", "best_before"], required=False)
+    expiry_date = serializers.DateField(required=False, allow_null=True)
+
+
+class QuickAddRequestSerializer(serializers.Serializer):
+    items = QuickAddItemSerializer(many=True)
+
+
 class InventoryItemSerializer(serializers.ModelSerializer):
     days_to_expiry = serializers.SerializerMethodField()
     is_low_stock = serializers.SerializerMethodField()
@@ -24,6 +39,7 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             "barcode",
             "brand",
             "tags",
+            "expiry_type",
             "expiry_date",
             "notes",
             "days_to_expiry",

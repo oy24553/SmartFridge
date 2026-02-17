@@ -3,6 +3,11 @@ from django.db import models
 
 
 class InventoryItem(models.Model):
+    EXPIRY_TYPE = (
+        ("use_by", "Use by"),
+        ("best_before", "Best before"),
+    )
+
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -21,6 +26,7 @@ class InventoryItem(models.Model):
     brand = models.CharField(max_length=100, blank=True, default="")
     tags = models.CharField(max_length=255, blank=True, default="")  # comma separated
 
+    expiry_type = models.CharField(max_length=20, choices=EXPIRY_TYPE, default="best_before")
     expiry_date = models.DateField(null=True, blank=True)
 
     notes = models.TextField(blank=True, default="")

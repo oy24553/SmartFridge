@@ -14,6 +14,7 @@ from .serializers import (
     InventoryItemSerializer,
     AdjustSerializer,
     BulkCreateItemSerializer,
+    QuickAddRequestSerializer,
     ConsumptionEventSerializer,
     ShoppingTaskSerializer,
     CookHistorySerializer,
@@ -101,6 +102,70 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
             created.append(InventoryItemSerializer(item).data)
         return Response(created, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=["post"], url_path="quick-add")
+    def quick_add(self, request):
+        """One-click add common items: merge by name and increment quantity."""
+        serializer = QuickAddRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        items = serializer.validated_data["items"]
+
+        results = []
+        with transaction.atomic():
+            for row in items:
+                name = (row.get("name") or "").strip()
+                if not name:
+                    continue
+                qty = row.get("quantity") or 1
+                unit = (row.get("unit") or "").strip()
+
+                # merge by case-insensitive name; if duplicates exist, pick the most recently updated
+                existing = (
+                    InventoryItem.objects.filter(owner=request.user, name__iexact=name)
+                    .order_by("-updated_at", "id")
+                    .first()
+                )
+                if existing is None:
+                    existing = InventoryItem.objects.create(
+                        owner=request.user,
+                        name=name,
+                        quantity=0,
+                        unit=unit or "pcs",
+                        category=row.get("category") or "",
+                        location=row.get("location") or "",
+                        container=row.get("container") or "",
+                        expiry_type=row.get("expiry_type") or "best_before",
+                        expiry_date=row.get("expiry_date"),
+                    )
+                else:
+                    # Optionally fill missing metadata (do not overwrite unless empty)
+                    changed = False
+                    for k in ["category", "location", "container", "expiry_type", "expiry_date"]:
+                        v = row.get(k)
+                        if v in [None, ""]:
+                            continue
+                        if getattr(existing, k, None) in ["", None]:
+                            setattr(existing, k, v)
+                            changed = True
+                    if unit and (existing.unit or "") == "":
+                        existing.unit = unit
+                        changed = True
+                    if changed:
+                        existing.save()
+
+                existing.quantity = F("quantity") + qty
+                existing.save(update_fields=["quantity", "updated_at"])
+                existing.refresh_from_db()
+                ConsumptionEvent.objects.create(
+                    owner=request.user,
+                    item=existing,
+                    action="add",
+                    delta=qty,
+                    note="quick-add",
+                )
+                results.append(InventoryItemSerializer(existing).data)
+
+        return Response({"results": results}, status=status.HTTP_200_OK)
+
 
 @extend_schema(responses={200: OpenApiTypes.OBJECT}, description="Dashboard summary: low stock, near expiry, priority")
 @api_view(["GET"])
@@ -108,11 +173,22 @@ class InventoryItemViewSet(viewsets.ModelViewSet):
 def summary(request):
     from datetime import date, timedelta
 
-    days = int(request.query_params.get("days", 3))
-    target = date.today() + timedelta(days=days)
+    use_by_days = 2
+    best_before_days = 5
+    today = date.today()
+    target_use_by = today + timedelta(days=use_by_days)
+    target_best_before = today + timedelta(days=best_before_days)
+
     qs = InventoryItem.objects.filter(owner=request.user)
     low_stock = qs.filter(quantity__lte=F("min_stock"))
-    near_expiry = qs.filter(expiry_date__isnull=False, expiry_date__lte=target).order_by("expiry_date")
+    near_expiry = (
+        qs.filter(expiry_date__isnull=False)
+        .filter(
+            Q(expiry_type="use_by", expiry_date__lte=target_use_by)
+            | Q(expiry_type="best_before", expiry_date__lte=target_best_before)
+        )
+        .order_by("expiry_date")
+    )
     # priority list: combine near-expiry and days_to_empty (based on recent consumption)
     window_days = int(request.query_params.get("window_days", 14))
     from django.utils import timezone
@@ -136,7 +212,7 @@ def summary(request):
         # days to expiry
         dte = None
         if item.expiry_date:
-            dte = (item.expiry_date - date.today()).days
+            dte = (item.expiry_date - today).days
         # priority score: smaller is more urgent
         candidates = [v for v in [dte, days_to_empty] if v is not None]
         if not candidates:
@@ -160,7 +236,10 @@ def summary(request):
         "low_stock": InventoryItemSerializer(low_stock, many=True).data,
         "near_expiry": InventoryItemSerializer(near_expiry, many=True).data,
         "priority": priority,
-        "days": days,
+        "expiry_thresholds": {
+            "use_by_days": use_by_days,
+            "best_before_days": best_before_days,
+        },
         "window_days": window_days,
     })
 
