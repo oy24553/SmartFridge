@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../lib/apiClient.js'
 import Modal from '../components/Modal.jsx'
 import { SkeletonLine } from '../components/Skeleton.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 
 export default function Inventory() {
   const [items, setItems] = useState([])
@@ -51,26 +52,26 @@ export default function Inventory() {
       {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="p-5 bg-white rounded shadow">
+            <div key={i} className="glass-card p-5">
               <SkeletonLine className="h-5 w-56 mb-2" />
               <SkeletonLine className="h-4 w-80" />
             </div>
           ))}
         </div>
       ) : error ? (
-        <p className="text-red-600">{error}</p>
+        <p className="text-rose-300">{error}</p>
       ) : (
-        <div className="glass-card rounded-2xl divide-y transition-all hover:shadow-xl">
-          {items.length === 0 && <p className="p-4 text-gray-500">No data</p>}
+        <div className="glass-card rounded-2xl divide-y divide-white/10 transition-all hover:shadow-xl">
+          {items.length === 0 && <EmptyState title="No inventory items" hint='Click "New" or use "AI Import" to add items.' />}
           {items.map((it) => (
             <div
               key={it.id}
               className={
                 `px-5 py-4 flex items-start justify-between motion-safe:animate-fade-in-up ` +
                 ((typeof it.days_to_expiry === 'number' && it.days_to_expiry < 0)
-                  ? 'bg-red-50 ring-1 ring-red-200 rounded'
+                  ? 'bg-rose-500/10 ring-1 ring-rose-500/20 rounded'
                   : (typeof it.days_to_expiry === 'number' && it.days_to_expiry <= 2)
-                    ? 'bg-amber-50 ring-1 ring-amber-200 rounded'
+                    ? 'bg-amber-500/10 ring-1 ring-amber-500/20 rounded'
                     : '')
               }
             >
@@ -78,26 +79,25 @@ export default function Inventory() {
                 <div className="font-medium flex items-center">
                   <span>{it.name}</span>
                   {it.is_low_stock && (
-                    <span className="ml-2 text-xs text-red-600 animate-pulse">Low stock</span>
+                    <span className="ml-2 text-xs text-rose-300">Low stock</span>
                   )}
                   {(typeof it.days_to_expiry === 'number' && it.days_to_expiry <= 2) && (
                     <span className="ml-2 relative inline-flex">
-                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                      <span className="absolute inline-flex h-2 w-2 rounded-full bg-rose-400/70"></span>
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-slate-300">
                   {it.quantity}{it.unit} · min {it.min_stock}{it.unit} · {it.location || 'Unassigned'}
                   {it.expiry_date ? ` · Exp: ${it.expiry_date}` : ''}
                   {typeof it.days_to_expiry === 'number' ? ` · D-${it.days_to_expiry}` : ''}
                 </div>
               </div>
               <div className="flex gap-2">
-                <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: -1, action: 'consume' }); fetchItems({ q }) }}>-1</button>
-                <button className="px-2 py-1 bg-gray-100 rounded transition-transform hover:scale-105" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: 1, action: 'add' }); fetchItems({ q }) }}>+1</button>
-                <button className="px-2 py-1 bg-blue-50 text-blue-700 rounded" onClick={()=>{ setEditItem(it); setEditOpen(true) }}>Edit</button>
-                <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/items/${it.id}/`); fetchItems({ q }) }}>Delete</button>
+                <button className="btn-soft !px-2 !py-1 text-xs" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: -1, action: 'consume' }); fetchItems({ q }) }}>-1</button>
+                <button className="btn-soft !px-2 !py-1 text-xs" onClick={async()=>{ await api.post(`/api/v1/inventory/items/${it.id}/adjust/`, { delta: 1, action: 'add' }); fetchItems({ q }) }}>+1</button>
+                <button className="btn-ghost !px-2 !py-1 text-xs" onClick={()=>{ setEditItem(it); setEditOpen(true) }}>Edit</button>
+                <button className="btn-ghost !px-2 !py-1 text-xs border-rose-500/30 text-rose-200 hover:bg-rose-500/10" onClick={async()=>{ await api.delete(`/api/v1/inventory/items/${it.id}/`); fetchItems({ q }) }}>Delete</button>
               </div>
             </div>
           ))}
@@ -109,7 +109,7 @@ export default function Inventory() {
         open={openNew}
         title="New Inventory"
         onClose={()=>setOpenNew(false)}
-        actions={<button className="px-3 py-1.5 bg-gray-900 text-white rounded" onClick={async()=>{
+        actions={<button className="btn-primary" onClick={async()=>{
           try {
             await api.post('/api/v1/inventory/items/', form)
             setOpenNew(false)
@@ -119,15 +119,15 @@ export default function Inventory() {
         }}>Save</button>}
       >
         <div className="grid grid-cols-2 gap-3">
-          <label className="col-span-2">Name<input className="w-full border rounded px-3 py-2" value={form.name} onChange={e=>setForm({...form, name: e.target.value})}/></label>
-          <label>Quantity<input className="w-full border rounded px-3 py-2" type="number" step="0.01" value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value})}/></label>
-          <label>Unit<input className="w-full border rounded px-3 py-2" value={form.unit} onChange={e=>setForm({...form, unit: e.target.value})}/></label>
-          <label>Min stock<input className="w-full border rounded px-3 py-2" type="number" step="0.01" value={form.min_stock} onChange={e=>setForm({...form, min_stock: e.target.value})}/></label>
-          <label>Expiry<input className="w-full border rounded px-3 py-2" type="date" value={form.expiry_date} onChange={e=>setForm({...form, expiry_date: e.target.value})}/></label>
-          <label>Category<input className="w-full border rounded px-3 py-2" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}/></label>
-          <label>Location<input className="w-full border rounded px-3 py-2" value={form.location} onChange={e=>setForm({...form, location: e.target.value})}/></label>
-          <label>Container<input className="w-full border rounded px-3 py-2" value={form.container} onChange={e=>setForm({...form, container: e.target.value})}/></label>
-          <label className="col-span-2">Notes<textarea className="w-full border rounded px-3 py-2" value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})}/></label>
+          <label className="col-span-2">Name<input className="input" value={form.name} onChange={e=>setForm({...form, name: e.target.value})}/></label>
+          <label>Quantity<input className="input" type="number" step="0.01" value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value})}/></label>
+          <label>Unit<input className="input" value={form.unit} onChange={e=>setForm({...form, unit: e.target.value})}/></label>
+          <label>Min stock<input className="input" type="number" step="0.01" value={form.min_stock} onChange={e=>setForm({...form, min_stock: e.target.value})}/></label>
+          <label>Expiry<input className="input" type="date" value={form.expiry_date} onChange={e=>setForm({...form, expiry_date: e.target.value})}/></label>
+          <label>Category<input className="input" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}/></label>
+          <label>Location<input className="input" value={form.location} onChange={e=>setForm({...form, location: e.target.value})}/></label>
+          <label>Container<input className="input" value={form.container} onChange={e=>setForm({...form, container: e.target.value})}/></label>
+          <label className="col-span-2">Notes<textarea className="input min-h-24" value={form.notes} onChange={e=>setForm({...form, notes: e.target.value})}/></label>
         </div>
       </Modal>
 
@@ -136,7 +136,7 @@ export default function Inventory() {
         open={openBulk}
         title="Bulk Import (each line: name,quantity,unit,expiry[optional])"
         onClose={()=>setOpenBulk(false)}
-        actions={<button className="px-3 py-1.5 bg-indigo-600 text-white rounded" onClick={async()=>{
+        actions={<button className="btn-primary" onClick={async()=>{
           const items = bulkText.split('\n').map(l=>l.trim()).filter(Boolean).map(line=>{
             const [name, quantity, unit, expiry_date] = line.split(',').map(s=>s?.trim())
             return { name, quantity: Number(quantity||0), unit: unit||'pcs', expiry_date }
@@ -149,7 +149,7 @@ export default function Inventory() {
           } catch (e) { alert('Bulk import failed') }
         }}>Import</button>}
       >
-        <textarea className="w-full h-48 border rounded px-3 py-2" placeholder="chicken breast,2,pcs,2025-12-01\nmilk,500,ml,2025-11-20" value={bulkText} onChange={e=>setBulkText(e.target.value)} />
+        <textarea className="input h-48" placeholder="chicken breast,2,pcs,2025-12-01\nmilk,500,ml,2025-11-20" value={bulkText} onChange={e=>setBulkText(e.target.value)} />
       </Modal>
 
       {/* AI free-text import */}
@@ -159,7 +159,7 @@ export default function Inventory() {
         onClose={()=>{ setOpenAI(false); setAiText(''); setAiItems([]); setAiLoading(false) }}
         actions={<>
           {aiItems.length>0 && (
-            <button className="px-3 py-1.5 bg-emerald-600 text-white rounded mr-2" onClick={async()=>{
+            <button className="btn-soft mr-2" onClick={async()=>{
               try {
                 const items = aiItems.map(i=>({
                   name: i.name,
@@ -173,7 +173,7 @@ export default function Inventory() {
               } catch(e) { alert('Import failed') }
             }}>Import</button>
           )}
-          <button className="px-3 py-1.5 bg-fuchsia-700 text-white rounded mr-2" disabled={aiLoading || !aiText.trim()} onClick={async()=>{
+          <button className="btn-primary mr-2" disabled={aiLoading || !aiText.trim()} onClick={async()=>{
             setAiLoading(true)
             try {
               await api.post('/api/v1/ai/parse-items-import/', { text: aiText })
@@ -184,7 +184,7 @@ export default function Inventory() {
               alert(msg)
             } finally { setAiLoading(false) }
           }}>Parse & Import</button>
-          <button className="px-3 py-1.5 bg-gray-900 text-white rounded" disabled={aiLoading || !aiText.trim()} onClick={async()=>{
+          <button className="btn-soft" disabled={aiLoading || !aiText.trim()} onClick={async()=>{
             setAiLoading(true)
             try {
               const { data } = await api.post('/api/v1/ai/parse-items/', { text: aiText })
@@ -197,19 +197,19 @@ export default function Inventory() {
           }}>{aiLoading? 'Parsing...' : 'Parse'}</button>
         </>}
       >
-        <textarea className="w-full h-40 border rounded px-3 py-2" placeholder="Paste shopping list or description, e.g.\nchicken breast 2 pcs, milk 500ml, 3 apples; drink milk within 3 days." value={aiText} onChange={e=>setAiText(e.target.value)} />
+        <textarea className="input h-40" placeholder="Paste shopping list or description, e.g.\nchicken breast 2 pcs, milk 500ml, 3 apples; drink milk within 3 days." value={aiText} onChange={e=>setAiText(e.target.value)} />
         {aiItems.length>0 && (
-          <div className="border rounded">
-            <div className="px-3 py-2 border-b text-sm font-medium">Parsed Results (ready to import)</div>
-            <ul className="divide-y max-h-60 overflow-auto">
+          <div className="border border-white/10 rounded-lg overflow-hidden">
+            <div className="px-3 py-2 border-b border-white/10 text-sm font-medium text-slate-100">Parsed Results (ready to import)</div>
+            <ul className="divide-y divide-white/10 max-h-60 overflow-auto">
               {aiItems.map((it, idx)=>(
                 <li key={idx} className="px-3 py-2 text-sm flex gap-2 items-center">
-                  <input className="w-40 border rounded px-2 py-1" value={it.name||''} onChange={e=>{
+                  <input className="input !w-40 !px-2 !py-1" value={it.name||''} onChange={e=>{
                     const a=[...aiItems]; a[idx]={...a[idx], name:e.target.value}; setAiItems(a)
                   }} />
-                  <input type="number" step="0.01" className="w-24 border rounded px-2 py-1" value={it.quantity||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], quantity:e.target.value}; setAiItems(a) }} />
-                  <input className="w-20 border rounded px-2 py-1" placeholder="Unit" value={it.unit||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], unit:e.target.value}; setAiItems(a) }} />
-                  <input type="date" className="w-40 border rounded px-2 py-1" value={it.expiry_date||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], expiry_date:e.target.value}; setAiItems(a) }} />
+                  <input type="number" step="0.01" className="input !w-24 !px-2 !py-1" value={it.quantity||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], quantity:e.target.value}; setAiItems(a) }} />
+                  <input className="input !w-20 !px-2 !py-1" placeholder="Unit" value={it.unit||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], unit:e.target.value}; setAiItems(a) }} />
+                  <input type="date" className="input !w-40 !px-2 !py-1" value={it.expiry_date||''} onChange={e=>{ const a=[...aiItems]; a[idx]={...a[idx], expiry_date:e.target.value}; setAiItems(a) }} />
                 </li>
               ))}
             </ul>
@@ -222,7 +222,7 @@ export default function Inventory() {
         open={editOpen}
         title={editItem ? `Edit: ${editItem.name}` : 'Edit'}
         onClose={()=>{ setEditOpen(false); setEditItem(null) }}
-        actions={<button className="px-3 py-1.5 bg-blue-600 text-white rounded" onClick={async()=>{
+        actions={<button className="btn-primary" onClick={async()=>{
           if (!editItem) return
           const payload = {
             name: editItem.name,
@@ -242,14 +242,14 @@ export default function Inventory() {
       >
         {editItem && (
           <div className="grid grid-cols-2 gap-3">
-            <label className="col-span-2">Name<input className="w-full border rounded px-3 py-2" value={editItem.name} onChange={e=>setEditItem({...editItem, name: e.target.value})}/></label>
-            <label>Unit<input className="w-full border rounded px-3 py-2" value={editItem.unit||''} onChange={e=>setEditItem({...editItem, unit: e.target.value})}/></label>
-            <label>Min stock<input className="w-full border rounded px-3 py-2" type="number" step="0.01" value={editItem.min_stock||0} onChange={e=>setEditItem({...editItem, min_stock: e.target.value})}/></label>
-            <label>Expiry<input className="w-full border rounded px-3 py-2" type="date" value={editItem.expiry_date||''} onChange={e=>setEditItem({...editItem, expiry_date: e.target.value})}/></label>
-            <label>Category<input className="w-full border rounded px-3 py-2" value={editItem.category||''} onChange={e=>setEditItem({...editItem, category: e.target.value})}/></label>
-            <label>Location<input className="w-full border rounded px-3 py-2" value={editItem.location||''} onChange={e=>setEditItem({...editItem, location: e.target.value})}/></label>
-            <label>Container<input className="w-full border rounded px-3 py-2" value={editItem.container||''} onChange={e=>setEditItem({...editItem, container: e.target.value})}/></label>
-            <label className="col-span-2">Notes<textarea className="w-full border rounded px-3 py-2" value={editItem.notes||''} onChange={e=>setEditItem({...editItem, notes: e.target.value})}/></label>
+            <label className="col-span-2">Name<input className="input" value={editItem.name} onChange={e=>setEditItem({...editItem, name: e.target.value})}/></label>
+            <label>Unit<input className="input" value={editItem.unit||''} onChange={e=>setEditItem({...editItem, unit: e.target.value})}/></label>
+            <label>Min stock<input className="input" type="number" step="0.01" value={editItem.min_stock||0} onChange={e=>setEditItem({...editItem, min_stock: e.target.value})}/></label>
+            <label>Expiry<input className="input" type="date" value={editItem.expiry_date||''} onChange={e=>setEditItem({...editItem, expiry_date: e.target.value})}/></label>
+            <label>Category<input className="input" value={editItem.category||''} onChange={e=>setEditItem({...editItem, category: e.target.value})}/></label>
+            <label>Location<input className="input" value={editItem.location||''} onChange={e=>setEditItem({...editItem, location: e.target.value})}/></label>
+            <label>Container<input className="input" value={editItem.container||''} onChange={e=>setEditItem({...editItem, container: e.target.value})}/></label>
+            <label className="col-span-2">Notes<textarea className="input min-h-24" value={editItem.notes||''} onChange={e=>setEditItem({...editItem, notes: e.target.value})}/></label>
           </div>
         )}
       </Modal>

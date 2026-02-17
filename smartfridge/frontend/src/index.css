@@ -6,6 +6,20 @@ html, body, #root { height: 100%; }
 
 .container-narrow { max-width: 1200px; }
 
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.35);
+  }
+}
+
 /* Global animation switch: set data-anim="off" on <html> to disable */
 [data-anim="off"] *, [data-anim="off"] *::before, [data-anim="off"] *::after {
   animation: none !important;
@@ -18,43 +32,77 @@ html, body, #root { height: 100%; }
 
 /* Components layer: shared design tokens */
 @layer components {
+  /* Layout */
+  .app-shell { @apply min-h-screen; }
+  .app-container { @apply mx-auto w-full max-w-[1120px] px-4 md:px-6; }
+
   /* Buttons */
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all active:scale-[.98]; }
-  .btn-ghost { @apply btn bg-white/50 hover:bg-white/70 dark:bg-white/10 dark:hover:bg-white/20 border border-white/60 dark:border-white/20 backdrop-blur; }
-  .btn-primary { @apply btn text-white shadow-md shadow-fuchsia-400/20 bg-gradient-to-r from-fuchsia-600 via-indigo-600 to-cyan-600 hover:from-fuchsia-500 hover:to-cyan-500; }
-  .btn-soft { @apply btn bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20; }
-  .btn-demo { @apply btn relative text-white overflow-hidden bg-gradient-to-r from-fuchsia-600 via-indigo-600 to-cyan-600; }
-  .btn-demo::before { content: ""; @apply absolute inset-0 rounded-md; background: linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition active:scale-[.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60 focus-visible:ring-offset-0; }
+  .btn-ghost { @apply btn bg-transparent hover:bg-white/5 text-slate-200 border border-white/10; }
+  .btn-soft { @apply btn bg-white/5 hover:bg-white/10 text-slate-100 border border-white/10; }
+  .btn-primary { @apply btn text-white bg-indigo-500 hover:bg-indigo-400 border border-indigo-400/40 shadow-[0_10px_30px_-15px_rgba(99,102,241,0.75)]; }
+  .btn-demo { @apply btn relative text-white overflow-hidden bg-indigo-500 hover:bg-indigo-400 border border-indigo-400/40; }
+  .btn-demo::before { content: ""; @apply absolute inset-0 rounded-lg opacity-60; background: linear-gradient(110deg,transparent,rgba(255,255,255,.22),transparent); background-size: 200% 100%; animation: shimmer 1.6s linear infinite; }
 
   /* Inputs */
-  .input { @apply w-full rounded-md border border-gray-200 bg-white/70 backdrop-blur px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent dark:bg-white/10 dark:border-white/10; }
-  .input { @apply font-normal; }
+  .input { @apply w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/40; }
 
   /* Card / Glass */
-  .card { @apply rounded-xl border border-black/5 bg-white shadow-sm; }
-  .glass { @apply bg-white/60 dark:bg-white/10 backdrop-blur-xl border border-white/60 dark:border-white/20 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.25)]; }
+  .card { @apply rounded-2xl border border-white/10 bg-slate-900/40 shadow-[0_18px_55px_-35px_rgba(0,0,0,0.85)]; }
+  .glass { @apply bg-white/[0.04] backdrop-blur-xl; }
   .glass-card { @apply card glass; }
 
   /* Links */
-  .gradient-text { @apply bg-clip-text text-transparent bg-gradient-to-r from-fuchsia-400 via-sky-400 to-emerald-400; }
+  .gradient-text { @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-sky-300 to-slate-100; }
   .link-underline { @apply relative; }
-  .link-underline::after { content: ""; @apply absolute left-0 -bottom-0.5 h-0.5 w-0 bg-gradient-to-r from-fuchsia-400 to-emerald-400 transition-all; }
+  .link-underline::after { content: ""; @apply absolute left-0 -bottom-0.5 h-0.5 w-0 bg-indigo-400/80 transition-all; }
   .link-underline:hover::after { @apply w-full; }
 }
 
-/* Fancy background helpers */
-.bg-aurora {
-  /* animated radial gradient cloud */
-  background-image: radial-gradient(60% 60% at 20% 0%, rgba(244,114,182,.20), transparent 60%),
-    radial-gradient(60% 60% at 100% 0%, rgba(129,140,248,.18), transparent 60%),
-    radial-gradient(80% 80% at 0% 100%, rgba(34,211,238,.20), transparent 60%);
-  background-size: 120% 120%, 120% 120%, 120% 120%;
-  background-position: left top, right top, left bottom;
+/* Subtle tech background */
+.bg-tech {
+  background-color: rgb(2 6 23); /* slate-950 */
+  background-image:
+    radial-gradient(800px 420px at 20% 10%, rgba(99,102,241,.22), transparent 60%),
+    radial-gradient(700px 360px at 90% 20%, rgba(56,189,248,.12), transparent 55%),
+    radial-gradient(700px 420px at 40% 100%, rgba(15,23,42,.9), transparent 65%);
 }
 .bg-grid {
-  background-image: linear-gradient(to right, rgba(0,0,0,.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,.04) 1px, transparent 1px);
+  background-image: linear-gradient(to right, rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.04) 1px, transparent 1px);
   background-size: 24px 24px;
   mask-image: radial-gradient(circle at 40% 30%, rgba(0,0,0,.9), rgba(0,0,0,0) 70%);
 }
 
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+@keyframes scan-sweep {
+  0% { transform: translateY(-40%); opacity: 0; }
+  15% { opacity: .35; }
+  50% { opacity: .12; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+
+@layer components {
+  .scan-sweep {
+    position: relative;
+    overflow: hidden;
+  }
+  .scan-sweep::after {
+    content: "";
+    position: absolute;
+    left: -20%;
+    right: -20%;
+    top: 0;
+    height: 45%;
+    background: linear-gradient(to bottom, transparent, rgba(99,102,241,.14), transparent);
+    animation: scan-sweep 8.5s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-sweep::after {
+    animation: none !important;
+  }
+}

@@ -1,12 +1,12 @@
 export default function Modal({ open, title, children, onClose, actions }) {
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/30">
-      <div className="bg-white rounded shadow w-full max-w-lg">
-        <div className="px-4 py-3 border-b font-medium">{title}</div>
-        <div className="p-4 space-y-3">{children}</div>
-        <div className="px-4 py-3 border-t flex justify-end gap-2">
-          <button className="px-3 py-1.5 bg-gray-100 rounded" onClick={onClose}>Cancel</button>
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+      <div className="glass-card w-full max-w-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10 font-medium text-slate-100">{title}</div>
+        <div className="p-4 space-y-3 text-slate-100">{children}</div>
+        <div className="px-4 py-3 border-t border-white/10 flex justify-end gap-2">
+          <button className="btn-soft" onClick={onClose}>Cancel</button>
           {actions}
         </div>
       </div>

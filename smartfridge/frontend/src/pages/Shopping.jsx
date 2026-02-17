@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../lib/apiClient.js'
 import Modal from '../components/Modal.jsx'
 import { SkeletonLine } from '../components/Skeleton.jsx'
+import EmptyState from '../components/EmptyState.jsx'
 
 export default function Shopping() {
   const [items, setItems] = useState([])
@@ -39,29 +40,29 @@ export default function Shopping() {
         <button className="btn-ghost" onClick={()=>setOpenNew(true)}>New</button>
         <button className="btn-primary" onClick={openBatchModal}>Stock-in All</button>
         <div className="ml-auto flex items-center gap-2 text-sm">
-          <span>Source:</span>
+          <span className="text-slate-300">Source:</span>
           {['', 'manual', 'low_stock', 'ai', 'plan'].map(s => (
             <button
               key={s || 'all'}
-              className={`px-3 py-1 rounded-full transition-all ring-1 ring-black/5 ${source===s? 'bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white shadow' : 'bg-white/70 hover:bg-white'}`}
+              className={`px-3 py-1 rounded-full transition-all ring-1 ring-white/10 ${source===s? 'bg-indigo-500/30 text-white shadow-[0_10px_30px_-18px_rgba(99,102,241,0.9)]' : 'bg-white/5 hover:bg-white/10 text-slate-200'}`}
               onClick={()=>setSource(s)}
             >
               {s || 'All'}
             </button>
           ))}
-          <label className="ml-3 flex items-center gap-1"><input type="checkbox" checked={groupBy} onChange={e=>setGroupBy(e.target.checked)} />Group by category</label>
+          <label className="ml-3 flex items-center gap-1 text-slate-300"><input type="checkbox" checked={groupBy} onChange={e=>setGroupBy(e.target.checked)} />Group by category</label>
         </div>
       </div>
       {loading ? (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="p-4 bg-white rounded shadow">
+            <div key={i} className="glass-card p-4">
               <SkeletonLine className="h-5 w-48 mb-2" />
               <SkeletonLine className="h-4 w-72" />
             </div>
           ))}
         </div>
-      ) : error ? <p className="text-red-600">{error}</p> : (
+      ) : error ? <p className="text-rose-300">{error}</p> : (
         groupBy ? (
           <div className="space-y-4">
             {Object.entries(items.reduce((acc, t)=>{
@@ -71,18 +72,18 @@ export default function Shopping() {
               return acc
             }, {})).map(([cat, rows]) => (
               <div key={cat} className="glass-card rounded-2xl transition-all hover:shadow-xl">
-                <div className="px-5 py-3 border-b font-heading font-semibold">{cat} ({rows.length})</div>
-                <div className="divide-y">
+                <div className="px-5 py-3 border-b border-white/10 font-heading font-semibold">{cat} ({rows.length})</div>
+                <div className="divide-y divide-white/10">
                   {rows.map(t => (
-                    <div key={t.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-white/60 transition">
+                    <div key={t.id} className="px-5 py-3.5 flex items-center justify-between hover:bg-white/5 transition">
                       <div className="text-sm">
                         <div className="font-medium flex items-center gap-2"><span>{t.name}</span><SourceBadge s={t.source} /></div>
-                        <div className="text-gray-600">{t.quantity}{t.unit}</div>
+                        <div className="text-slate-300">{t.quantity}{t.unit}</div>
                       </div>
                       <div className="flex gap-2">
                         <button className="btn-soft" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>Stock-in</button>
-                        <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>Done</button>
-                        <button className="px-2 py-1 bg-gray-50 text-gray-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>Delete</button>
+                        <button className="btn-ghost !px-2 !py-1 text-xs border-rose-500/30 text-rose-200 hover:bg-rose-500/10" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>Done</button>
+                        <button className="btn-ghost !px-2 !py-1 text-xs" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>Delete</button>
                       </div>
                     </div>
                   ))}
@@ -91,24 +92,24 @@ export default function Shopping() {
             ))}
           </div>
         ) : (
-          <div className="glass-card rounded-2xl divide-y transition-all hover:shadow-xl">
-            {items.length === 0 && <p className="p-4 text-gray-500">No items</p>}
+          <div className="glass-card rounded-2xl divide-y divide-white/10 transition-all hover:shadow-xl">
+            {items.length === 0 && <EmptyState title="Shopping list is empty" hint='Use "Generate from Low Stock" or ask the AI Assistant below.' />}
             {items.map(t => (
               <div
                 key={t.id}
                 className={
-                  `px-5 py-4 flex items-center justify-between motion-safe:animate-fade-in-up hover:bg-white/60 transition ` +
-                  (t.source === 'ai' ? 'ring-1 ring-sky-200 rounded bg-sky-50/40 ' : '')
+                  `px-5 py-4 flex items-center justify-between motion-safe:animate-fade-in-up hover:bg-white/5 transition ` +
+                  (t.source === 'ai' ? 'ring-1 ring-sky-500/20 rounded bg-sky-500/5 ' : '')
                 }
               >
                 <div className="text-sm">
                   <div className="font-medium flex items-center gap-2"><span>{t.name}</span><SourceBadge s={t.source} /></div>
-                  <div className="text-gray-600">{t.quantity}{t.unit}</div>
+                  <div className="text-slate-300">{t.quantity}{t.unit}</div>
                 </div>
                 <div className="flex gap-2">
                   <button className="btn-soft" onClick={async()=>{ await api.post(`/api/v1/inventory/shopping/${t.id}/purchase/`, {}); load() }}>Stock-in</button>
-                  <button className="px-2 py-1 bg-red-50 text-red-700 rounded" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>Done</button>
-                  <button className="px-2 py-1 bg-gray-50 text-gray-700 rounded" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>Delete</button>
+                  <button className="btn-ghost !px-2 !py-1 text-xs border-rose-500/30 text-rose-200 hover:bg-rose-500/10" onClick={async()=>{ await api.patch(`/api/v1/inventory/shopping/${t.id}/`, { status: 'done' }); load() }}>Done</button>
+                  <button className="btn-ghost !px-2 !py-1 text-xs" onClick={async()=>{ await api.delete(`/api/v1/inventory/shopping/${t.id}/`); load() }}>Delete</button>
                 </div>
               </div>
             ))}
@@ -148,7 +149,7 @@ export default function Shopping() {
         <div className="max-h-96 overflow-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left border-b">
+              <tr className="text-left border-b border-white/10">
                 <th className="p-2">Name</th>
                 <th className="p-2">Qty</th>
                 <th className="p-2">Expiry</th>
@@ -156,7 +157,7 @@ export default function Shopping() {
             </thead>
             <tbody>
               {batchRows.map((r, idx)=>(
-                <tr key={r.id} className="border-b">
+                <tr key={r.id} className="border-b border-white/10">
                   <td className="p-2">{r.name}</td>
                   <td className="p-2"><input type="number" step="0.01" className="w-28 input" value={r.quantity}
                     onChange={e=>{ const a=[...batchRows]; a[idx]={...a[idx], quantity:e.target.value}; setBatchRows(a) }} /></td>
@@ -203,21 +204,18 @@ function AssistantChat({ onDone }) {
 
   return (
     <div className="mt-6 glass-card rounded-2xl">
-      <div className="px-5 py-3 border-b font-heading font-semibold">AI Assistant</div>
+      <div className="px-5 py-3 border-b border-white/10 font-heading font-semibold">AI Assistant</div>
       <div className="p-4 space-y-2 max-h-64 overflow-auto text-sm">
-        {history.length === 0 && <div className="text-gray-500">Examples: "Suggest basics for next week", "Add 12 eggs and 2L milk to shopping list", "Stock in 2 chicken breasts now".</div>}
+        {history.length === 0 && <div className="text-slate-400">Examples: "Suggest basics for next week", "Add 12 eggs and 2L milk to shopping list", "Stock in 2 chicken breasts now".</div>}
         {history.map((m, i) => (
           <div key={i} className={m.role==='user'? 'text-right' : ''}>
-            <span className={m.role==='user'? 'inline-block px-2 py-1 rounded bg-gradient-to-r from-fuchsia-500 to-indigo-500 text-white' : 'inline-block bg-gray-100 px-2 py-1 rounded'}>{m.text}</span>
+            <span className={m.role==='user'? 'inline-block px-2 py-1 rounded bg-indigo-500/25 text-slate-100 ring-1 ring-indigo-500/20' : 'inline-block bg-white/5 px-2 py-1 rounded ring-1 ring-white/10'}>{m.text}</span>
           </div>
         ))}
       </div>
-      <div className="p-3 border-t flex gap-2">
+      <div className="p-3 border-t border-white/10 flex gap-2">
         <input className="flex-1 input" placeholder="Tell me: suggest restock / add to list / stock-in..." value={text} onChange={e=>setText(e.target.value)} />
-        <button className="relative overflow-hidden btn-primary" disabled={loading} onClick={send}>
-          <span className="relative z-10">{loading? 'Running...' : 'Send'}</span>
-          <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,.35),transparent)] bg-[length:200%_100%] motion-safe:animate-shimmer" />
-        </button>
+        <button className="btn-primary" disabled={loading} onClick={send}>{loading? 'Running...' : 'Send'}</button>
       </div>
     </div>
   )
@@ -225,10 +223,10 @@ function AssistantChat({ onDone }) {
 
 function SourceBadge({ s }) {
   const map = {
-    ai: 'bg-sky-50 text-sky-700 ring-sky-200',
-    low_stock: 'bg-amber-50 text-amber-700 ring-amber-200',
-    plan: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-    manual: 'bg-gray-100 text-gray-700 ring-gray-200',
+    ai: 'bg-sky-500/10 text-sky-200 ring-sky-500/20',
+    low_stock: 'bg-amber-500/10 text-amber-200 ring-amber-500/20',
+    plan: 'bg-emerald-500/10 text-emerald-200 ring-emerald-500/20',
+    manual: 'bg-white/5 text-slate-200 ring-white/10',
   }
   const cls = map[s] || map.manual
   const label = s === '' || !s ? 'manual' : s

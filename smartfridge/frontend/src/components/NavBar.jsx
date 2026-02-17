@@ -1,12 +1,10 @@
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import useAuth, { logout } from '../lib/auth.js'
 import useUI from '../lib/ui.js'
-import Tilt from './Tilt.jsx'
 
 export default function NavBar() {
   const { isAuthenticated } = useAuth()
-  const { pathname } = useLocation()
   const navigate = useNavigate()
   const { animEnabled, toggleAnim } = useUI()
   const [open, setOpen] = useState(false)
@@ -17,51 +15,65 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-white/60 bg-white/80 border-b border-white/60">
-      <div className="mx-auto w-full max-w-[1120px] px-4 md:px-6 py-3 flex items-center justify-between">
-        <Tilt maxTilt={28} scale={1.06} expand={200} maxRotateZ={12} maxTranslateZ={14}>
-          <Link
-            to="/"
-            className="font-heading font-extrabold text-2xl md:text-3xl gradient-text bg-[length:200%_auto] motion-safe:animate-gradient-x drop-shadow-[0_0_8px_rgba(99,102,241,0.35)]"
-            title="SmartFridge"
-          >
-            SmartFridge
-          </Link>
-        </Tilt>
+    <nav className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur">
+      <div className="app-container py-3 flex items-center justify-between">
+        <Link
+          to="/"
+          className="font-heading font-semibold text-lg md:text-xl tracking-tight text-slate-100 hover:text-white transition"
+          title="SmartFridge"
+        >
+          SmartFridge<span className="text-indigo-400">.</span>
+        </Link>
         {/* Desktop menu */}
-        <div className="hidden md:flex items-center gap-6 text-base md:text-lg">
+        <div className="hidden md:flex items-center gap-5 text-sm">
           {isAuthenticated && (
             <>
-              <Tilt maxTilt={16} scale={1.04} expand={160} maxRotateZ={8} maxTranslateZ={10}>
-                <NavLink to="/dashboard" className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'relative group transition-colors'}>
-                  <span className="group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-fuchsia-500 group-hover:to-emerald-500">Overview</span>
-                  <span className="absolute left-0 -bottom-0.5 h-0.5 w-0 bg-gradient-to-r from-fuchsia-400 to-emerald-400 group-hover:w-full transition-all"></span>
-                </NavLink>
-              </Tilt>
-              <Tilt maxTilt={16} scale={1.04} expand={160} maxRotateZ={8} maxTranslateZ={10}>
-                <NavLink to="/inventory" className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'relative group transition-colors'}>
-                  <span className="group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-sky-500 group-hover:to-indigo-500">Inventory</span>
-                  <span className="absolute left-0 -bottom-0.5 h-0.5 w-0 bg-gradient-to-r from-sky-400 to-indigo-400 group-hover:w-full transition-all"></span>
-                </NavLink>
-              </Tilt>
-              <Tilt maxTilt={16} scale={1.04} expand={160} maxRotateZ={8} maxTranslateZ={10}>
-                <NavLink to="/shopping" className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'relative group transition-colors'}>
-                  <span className="group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-rose-500 group-hover:to-orange-500">Shopping</span>
-                  <span className="absolute left-0 -bottom-0.5 h-0.5 w-0 bg-gradient-to-r from-rose-400 to-orange-400 group-hover:w-full transition-all"></span>
-                </NavLink>
-              </Tilt>
-              <Tilt maxTilt={16} scale={1.04} expand={160} maxRotateZ={8} maxTranslateZ={10}>
-                <NavLink to="/planner" className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'relative group transition-colors'}>
-                  <span className="group-hover:bg-clip-text group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-emerald-500 group-hover:to-sky-500">AI Planner</span>
-                  <span className="absolute left-0 -bottom-0.5 h-0.5 w-0 bg-gradient-to-r from-emerald-400 to-sky-400 group-hover:w-full transition-all"></span>
-                </NavLink>
-              </Tilt>
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  (isActive ? 'text-white ' : 'text-slate-300 hover:text-slate-100 ') +
+                  'relative py-1 transition-colors after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-indigo-400/80 after:transition-all hover:after:w-full ' +
+                  (isActive ? 'after:w-full after:bg-indigo-300' : '')
+                }
+              >
+                Overview
+              </NavLink>
+              <NavLink
+                to="/inventory"
+                className={({ isActive }) =>
+                  (isActive ? 'text-white ' : 'text-slate-300 hover:text-slate-100 ') +
+                  'relative py-1 transition-colors after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-indigo-400/80 after:transition-all hover:after:w-full ' +
+                  (isActive ? 'after:w-full after:bg-indigo-300' : '')
+                }
+              >
+                Inventory
+              </NavLink>
+              <NavLink
+                to="/shopping"
+                className={({ isActive }) =>
+                  (isActive ? 'text-white ' : 'text-slate-300 hover:text-slate-100 ') +
+                  'relative py-1 transition-colors after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-indigo-400/80 after:transition-all hover:after:w-full ' +
+                  (isActive ? 'after:w-full after:bg-indigo-300' : '')
+                }
+              >
+                Shopping
+              </NavLink>
+              <NavLink
+                to="/planner"
+                className={({ isActive }) =>
+                  (isActive ? 'text-white ' : 'text-slate-300 hover:text-slate-100 ') +
+                  'relative py-1 transition-colors after:absolute after:left-0 after:-bottom-0.5 after:h-0.5 after:w-0 after:bg-indigo-400/80 after:transition-all hover:after:w-full ' +
+                  (isActive ? 'after:w-full after:bg-indigo-300' : '')
+                }
+              >
+                AI Planner
+              </NavLink>
             </>
           )}
         </div>
         <div className="space-x-2 flex items-center">
           <button
-            className="hidden md:inline-block btn-ghost text-xs"
+            className="hidden md:inline-flex btn-ghost text-xs"
             onClick={toggleAnim}
             title="Toggle animations"
           >
@@ -86,11 +98,11 @@ export default function NavBar() {
       {/* Mobile dropdown */}
       {isAuthenticated && (
         <div className={`md:hidden overflow-hidden transition-all ${open ? 'max-h-60 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <div className="mx-auto w-full max-w-[1120px] px-4 md:px-6 pb-3 flex flex-col gap-2">
-            <NavLink to="/dashboard" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'link-underline'}>Overview</NavLink>
-            <NavLink to="/inventory" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'link-underline'}>Inventory</NavLink>
-            <NavLink to="/shopping" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'link-underline'}>Shopping</NavLink>
-            <NavLink to="/planner" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'font-semibold text-gray-900 ':'text-gray-800 ') + 'link-underline'}>AI Planner</NavLink>
+          <div className="app-container pb-3 flex flex-col gap-2 text-sm">
+            <NavLink to="/dashboard" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'text-white':'text-slate-300 hover:text-slate-100') + ' py-1'}>Overview</NavLink>
+            <NavLink to="/inventory" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'text-white':'text-slate-300 hover:text-slate-100') + ' py-1'}>Inventory</NavLink>
+            <NavLink to="/shopping" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'text-white':'text-slate-300 hover:text-slate-100') + ' py-1'}>Shopping</NavLink>
+            <NavLink to="/planner" onClick={()=>setOpen(false)} className={({isActive})=> (isActive?'text-white':'text-slate-300 hover:text-slate-100') + ' py-1'}>AI Planner</NavLink>
             <button className="btn-ghost w-fit text-xs" onClick={()=>{toggleAnim(); setOpen(false)}}>Animations: {animEnabled ? 'On' : 'Off'}</button>
           </div>
         </div>
