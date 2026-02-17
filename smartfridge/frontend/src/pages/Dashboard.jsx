@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../lib/apiClient.js'
 import { SkeletonCard } from '../components/Skeleton.jsx'
+import { daysUntilUK, formatUKDate } from '../lib/ukDate.js'
 
 export default function Dashboard() {
-  const [days, setDays] = useState(3)
   const [data, setData] = useState({ low_stock: [], near_expiry: [], priority: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const load = async (d = days) => {
+  const load = async () => {
     setLoading(true)
     try {
-      const { data } = await api.get('/api/v1/inventory/summary/', { params: { days: d } })
+      const { data } = await api.get('/api/v1/inventory/summary/')
       setData(data)
       setError(null)
     } catch (e) {
@@ -26,30 +26,26 @@ export default function Dashboard() {
 
   // helpers for UI flair
   const daysTo = (iso) => {
-    try {
-      const d = new Date(iso)
-      const today = new Date()
-      const diff = Math.floor((d.setHours(0,0,0,0) - today.setHours(0,0,0,0)) / 86400000)
-      return diff
-    } catch { return null }
+    return daysUntilUK(iso)
   }
 
   const badgeClass = (d) => {
     if (d == null) return 'bg-white/5 text-slate-300 ring-1 ring-white/10'
     if (d <= 0) return 'bg-rose-500/10 text-rose-200 ring-1 ring-rose-500/20'
-    if (d <= 3) return 'bg-amber-500/10 text-amber-200 ring-1 ring-amber-500/20'
-    return 'bg-emerald-500/10 text-emerald-200 ring-1 ring-emerald-500/20'
+    if (d <= 2) return 'bg-amber-500/10 text-amber-200 ring-1 ring-amber-500/20'
+    return 'bg-indigo-500/10 text-indigo-200 ring-1 ring-indigo-500/20'
   }
+
+  const useByDays = data?.expiry_thresholds?.use_by_days ?? 2
+  const bestBeforeDays = data?.expiry_thresholds?.best_before_days ?? 5
 
   return (
     <div className="space-y-6">
       <div className="mx-auto w-full max-w-[1120px] flex items-center gap-2">
         <h1 className="font-heading text-xl font-semibold tracking-tight text-slate-100">Overview</h1>
         <div className="ml-auto flex items-center gap-3 text-sm">
-          <span className="text-slate-300">Expiry window (days)</span>
-          <input type="number" min="1" className="w-20 input" value={days}
-            onChange={(e)=>setDays(Number(e.target.value))} />
-          <button className="btn-primary" onClick={()=>load(days)}>
+          <span className="text-slate-300">Near-expiry: Use by ≤{useByDays}d / Best before ≤{bestBeforeDays}d</span>
+          <button className="btn-primary" onClick={load}>
             Refresh
           </button>
         </div>
@@ -92,7 +88,7 @@ export default function Dashboard() {
           </section>
 
           <section className="glass-card transition-all hover:shadow-xl hover:-translate-y-0.5 motion-safe:animate-fade-in-up rounded-2xl">
-            <div className="px-6 py-3.5 border-b border-white/10 font-heading font-semibold">Near Expiry (≤{data.days} days, {data.near_expiry?.length || 0})</div>
+            <div className="px-6 py-3.5 border-b border-white/10 font-heading font-semibold">Near Expiry ({data.near_expiry?.length || 0})</div>
             <ul className="divide-y divide-white/10">
               {(data.near_expiry || []).map(it => (
                 <li key={it.id} className="px-6 py-3.5 text-sm flex items-center justify-between hover:bg-white/5 transition">
@@ -102,7 +98,9 @@ export default function Dashboard() {
                       const d = daysTo(it.expiry_date)
                       return <span className={`px-2 py-0.5 rounded-full text-xs ${badgeClass(d)}`}>{d != null ? (d >= 0 ? `D-${d}` : `Expired ${-d}d`) : 'Unknown date'}</span>
                     })()}
-                    <span className="text-slate-300 hidden sm:inline">{it.expiry_date || 'Unknown'}</span>
+                    <span className="text-slate-300 hidden sm:inline">
+                      {(it.expiry_type === 'use_by' ? 'Use by' : 'Best before')}{it.expiry_date ? `: ${formatUKDate(it.expiry_date)}` : ''}
+                    </span>
                 </div>
               </li>
               ))}

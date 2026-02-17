@@ -3,6 +3,8 @@ import api from '../lib/apiClient.js'
 import Modal from '../components/Modal.jsx'
 import { SkeletonLine } from '../components/Skeleton.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import { formatUKDate } from '../lib/ukDate.js'
+import QuickAddBar from '../components/QuickAddBar.jsx'
 
 export default function Inventory() {
   const [items, setItems] = useState([])
@@ -12,13 +14,16 @@ export default function Inventory() {
   const [openNew, setOpenNew] = useState(false)
   const [openBulk, setOpenBulk] = useState(false)
   const [openAI, setOpenAI] = useState(false)
-  const [form, setForm] = useState({ name: '', quantity: 1, unit: 'pcs', location: '', category: '', container: '', min_stock: 0, expiry_date: '', notes: '' })
+  const [form, setForm] = useState({ name: '', quantity: 1, unit: 'pcs', location: '', category: '', container: '', min_stock: 0, expiry_type: 'best_before', expiry_date: '', notes: '' })
   const [editOpen, setEditOpen] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [bulkText, setBulkText] = useState('')
   const [aiText, setAiText] = useState('')
   const [aiLoading, setAiLoading] = useState(false)
   const [aiItems, setAiItems] = useState([])
+
+  const expiryLabel = (t) => (t === 'use_by' ? 'Use by' : 'Best before')
+  const expiryWarnDays = (t) => (t === 'use_by' ? 2 : 5)
 
   const fetchItems = async (params = {}) => {
     setLoading(true)
@@ -37,6 +42,16 @@ export default function Inventory() {
 
   return (
     <div className="mx-auto w-full max-w-[1120px]">
+      <QuickAddBar
+        onAdd={async (itemsToAdd) => {
+          try {
+            await api.post('/api/v1/inventory/items/quick-add/', { items: itemsToAdd })
+            fetchItems({ q })
+          } catch (e) {
+            alert('Quick add failed')
+          }
+        }}
+      />
       <div className="flex items-center gap-2 mb-4">
         <input
           placeholder="Search name/category/location"
@@ -70,7 +85,7 @@ export default function Inventory() {
                 `px-5 py-4 flex items-start justify-between motion-safe:animate-fade-in-up ` +
                 ((typeof it.days_to_expiry === 'number' && it.days_to_expiry < 0)
                   ? 'bg-rose-500/10 ring-1 ring-rose-500/20 rounded'
-                  : (typeof it.days_to_expiry === 'number' && it.days_to_expiry <= 2)
+                  : (typeof it.days_to_expiry === 'number' && it.days_to_expiry <= expiryWarnDays(it.expiry_type))
                     ? 'bg-amber-500/10 ring-1 ring-amber-500/20 rounded'
                     : '')
               }
@@ -89,7 +104,7 @@ export default function Inventory() {
                 </div>
                 <div className="text-sm text-slate-300">
                   {it.quantity}{it.unit} · min {it.min_stock}{it.unit} · {it.location || 'Unassigned'}
-                  {it.expiry_date ? ` · Exp: ${it.expiry_date}` : ''}
+                  {it.expiry_date ? ` · ${expiryLabel(it.expiry_type)}: ${formatUKDate(it.expiry_date)}` : ''}
                   {typeof it.days_to_expiry === 'number' ? ` · D-${it.days_to_expiry}` : ''}
                 </div>
               </div>
@@ -113,7 +128,7 @@ export default function Inventory() {
           try {
             await api.post('/api/v1/inventory/items/', form)
             setOpenNew(false)
-            setForm({ name: '', quantity: 1, unit: 'pcs', location: '', category: '', container: '', min_stock: 0, expiry_date: '', notes: '' })
+            setForm({ name: '', quantity: 1, unit: 'pcs', location: '', category: '', container: '', min_stock: 0, expiry_type: 'best_before', expiry_date: '', notes: '' })
             fetchItems({ q })
           } catch (e) { alert('Create failed') }
         }}>Save</button>}
@@ -123,6 +138,12 @@ export default function Inventory() {
           <label>Quantity<input className="input" type="number" step="0.01" value={form.quantity} onChange={e=>setForm({...form, quantity: e.target.value})}/></label>
           <label>Unit<input className="input" value={form.unit} onChange={e=>setForm({...form, unit: e.target.value})}/></label>
           <label>Min stock<input className="input" type="number" step="0.01" value={form.min_stock} onChange={e=>setForm({...form, min_stock: e.target.value})}/></label>
+          <label>Expiry type
+            <select className="input" value={form.expiry_type} onChange={e=>setForm({...form, expiry_type: e.target.value})}>
+              <option value="use_by">Use by</option>
+              <option value="best_before">Best before</option>
+            </select>
+          </label>
           <label>Expiry<input className="input" type="date" value={form.expiry_date} onChange={e=>setForm({...form, expiry_date: e.target.value})}/></label>
           <label>Category<input className="input" value={form.category} onChange={e=>setForm({...form, category: e.target.value})}/></label>
           <label>Location<input className="input" value={form.location} onChange={e=>setForm({...form, location: e.target.value})}/></label>
@@ -231,6 +252,7 @@ export default function Inventory() {
             location: editItem.location,
             container: editItem.container,
             min_stock: editItem.min_stock,
+            expiry_type: editItem.expiry_type,
             expiry_date: editItem.expiry_date,
             notes: editItem.notes,
           }
@@ -245,6 +267,12 @@ export default function Inventory() {
             <label className="col-span-2">Name<input className="input" value={editItem.name} onChange={e=>setEditItem({...editItem, name: e.target.value})}/></label>
             <label>Unit<input className="input" value={editItem.unit||''} onChange={e=>setEditItem({...editItem, unit: e.target.value})}/></label>
             <label>Min stock<input className="input" type="number" step="0.01" value={editItem.min_stock||0} onChange={e=>setEditItem({...editItem, min_stock: e.target.value})}/></label>
+            <label>Expiry type
+              <select className="input" value={editItem.expiry_type || 'best_before'} onChange={e=>setEditItem({...editItem, expiry_type: e.target.value})}>
+                <option value="use_by">Use by</option>
+                <option value="best_before">Best before</option>
+              </select>
+            </label>
             <label>Expiry<input className="input" type="date" value={editItem.expiry_date||''} onChange={e=>setEditItem({...editItem, expiry_date: e.target.value})}/></label>
             <label>Category<input className="input" value={editItem.category||''} onChange={e=>setEditItem({...editItem, category: e.target.value})}/></label>
             <label>Location<input className="input" value={editItem.location||''} onChange={e=>setEditItem({...editItem, location: e.target.value})}/></label>
