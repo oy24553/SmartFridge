@@ -35,25 +35,25 @@ export default function Register() {
       <h1 className="text-xl font-heading font-semibold mb-4 tracking-tight">Register</h1>
       <form onSubmit={onSubmit} className="space-y-3">
         <div>
-          <label className="text-sm text-gray-600 font-light">Username</label>
+          <label className="text-sm text-slate-300">Username</label>
           <input className="input" value={username} onChange={(e)=>setUsername(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm text-gray-600 font-light">Email (optional)</label>
+          <label className="text-sm text-slate-300">Email (optional)</label>
           <input className="input" value={email} onChange={(e)=>setEmail(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm text-gray-600 font-light">Password</label>
+          <label className="text-sm text-slate-300">Password</label>
           <input type="password" className="input" value={password} onChange={(e)=>setPassword(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm text-gray-600 font-light">Confirm Password</label>
+          <label className="text-sm text-slate-300">Confirm Password</label>
           <input type="password" className="input" value={confirm} onChange={(e)=>setConfirm(e.target.value)} />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         <button className="w-full btn-primary">Register</button>
       </form>
-      <div className="mt-3 text-sm text-gray-600">Already have an account? <Link className="text-black underline" to="/login">Go to Login</Link></div>
+      <div className="mt-3 text-sm text-slate-300">Already have an account? <Link className="text-slate-100 hover:text-white underline underline-offset-4" to="/login">Go to Login</Link></div>
     </div>
   )
 }

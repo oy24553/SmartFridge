@@ -80,8 +80,11 @@ npm run dev
 ### Render (Backend)
 - Root directory: `Project/smartfridge/backend`
 - Build: `pip install -r requirements.txt && pip install gunicorn`
-- Start: `bash -c "python manage.py migrate --noinput && gunicorn server.wsgi:application --bind 0.0.0.0:$PORT"`
+- Start: `bash render_start.sh`
 - Env: see above. Prefer Postgres for persistence.
+
+Troubleshooting (Render)
+- If the service crash-loops with a Postgres `OperationalError`, check your `DATABASE_URL` and the database status. The start script runs `migrate` first, so DB connectivity issues will prevent boot.
 
 ### Vercel (Frontend)
 - Env: `VITE_API_BASE_URL=https://<render-domain>` (no `/api`)

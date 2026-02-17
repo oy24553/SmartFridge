@@ -40,11 +40,11 @@ export default function Login() {
       <h1 className="text-xl font-heading font-semibold mb-4 tracking-tight">Login</h1>
       <form onSubmit={onSubmit} className="space-y-3">
         <div>
-          <label className="text-sm text-gray-600 font-light">Username</label>
+          <label className="text-sm text-slate-300">Username</label>
           <input className="input" value={username} onChange={(e)=>setUsername(e.target.value)} />
         </div>
         <div>
-          <label className="text-sm text-gray-600 font-light">Password</label>
+          <label className="text-sm text-slate-300">Password</label>
           <input type="password" className="input" value={password} onChange={(e)=>setPassword(e.target.value)} />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
@@ -53,7 +53,7 @@ export default function Login() {
           <button type="button" className="w-full btn-demo" onClick={onDemo}>Login as Demo User</button>
         </div>
       </form>
-      <div className="mt-3 text-sm text-gray-600">No account? <Link className="text-black underline" to="/register">Register</Link></div>
+      <div className="mt-3 text-sm text-slate-300">No account? <Link className="text-slate-100 hover:text-white underline underline-offset-4" to="/register">Register</Link></div>
     </div>
   )
 }
